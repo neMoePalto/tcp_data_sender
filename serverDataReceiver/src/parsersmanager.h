@@ -35,10 +35,20 @@ class AbstractParser;
 class Widget;
 
 template<typename S>
-class ParsersManager
+class ParsersManager :
+        public std::enable_shared_from_this<ParsersManager<S>>
 {
+private:
+    void init();
+    explicit ParsersManager(std::weak_ptr<Widget> w
+                            , std::shared_ptr<S> header);
 public:
-    explicit ParsersManager(Widget* w, std::shared_ptr<S> header);
+    static std::shared_ptr<ParsersManager>
+    create(std::weak_ptr<Widget> w, std::shared_ptr<S> header);
+
+    ParsersManager(const ParsersManager& other) = delete;
+    ParsersManager& operator=(const ParsersManager& other) = delete;
+    ~ParsersManager();
     void parseMsg(char* dataFromTcp, int size);
     void readMsgFromBeginning(std::string&& data);
     void savePieceOfData(std::string&& piece);
@@ -54,7 +64,7 @@ private:
 //    std::shared_ptr<StructParser<SomeStruct>> _structParser;
 //    ShPtrAbstractParser _structParser;
     std::map<std::string, ShPtrAbstractParser> _dataParsers;
-    Widget* _widget;
+    std::weak_ptr<Widget> _widget;
     std::shared_ptr<S> _header;
     std::string _pieceOfData{};
     ShPtrAbstractParser chooseParserByDataType(const std::string& type);

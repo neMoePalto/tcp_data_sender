@@ -10,10 +10,17 @@
 
 
 template<typename T, typename S>
-StructParser<T,S>::StructParser(ParsersManager<S> *p, std::shared_ptr<S> header)
+StructParser<T,S>::StructParser(std::weak_ptr<ParsersManager<S>> p
+                                , std::shared_ptr<S> header)
     : AbstractParser<S>(p, header)
 {
     _structObjects.reserve(12000);
+}
+
+template<typename T, typename S>
+StructParser<T,S>::~StructParser()
+{
+    qDebug() << "StructParser::~dtor() called";
 }
 
 template<typename T, typename S>
@@ -62,14 +69,14 @@ void StructParser<T,S>::readBlocks(std::string &&data)
             {
 //                qDebug() << tr("Вторая часть рассматриваемого блока данных "
 //                               "находится за пределами текущего сообщения.");
-                AbstractParser<S>::_parsersManager->savePieceOfData(std::move(data));
+                AbstractParser<S>::_parsersManager.lock()->savePieceOfData(std::move(data));
                 return;
             }
             createObject(data, len);
         }
         else {
             qDebug() << QObject::tr("Количество оставшихся байт < 4. Сохраняем их.");
-            AbstractParser<S>::_parsersManager->savePieceOfData(std::move(data));
+            AbstractParser<S>::_parsersManager.lock()->savePieceOfData(std::move(data));
             return;
         }
     }
@@ -86,7 +93,7 @@ void StructParser<T,S>::readBlocks(std::string &&data)
         qDebug() << "-- Structs amount = " << _structObjects.size();
 
         if (!data.empty())
-            AbstractParser<S>::_parsersManager->readMsgFromBeginning(std::move(data));
+            AbstractParser<S>::_parsersManager.lock()->readMsgFromBeginning(std::move(data));
     }
 }
 

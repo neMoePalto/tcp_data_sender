@@ -7,7 +7,8 @@
 #include "parsersmanager.h"
 
 template<typename S>
-JsonParser<S>::JsonParser(ParsersManager<S> *p, std::shared_ptr<S> header)
+JsonParser<S>::JsonParser(std::weak_ptr<ParsersManager<S>> p
+                          , std::shared_ptr<S> header)
     : AbstractParser<S>(p, header)
 {
     _delimiterJsonPostfix = "}\n";
@@ -15,6 +16,12 @@ JsonParser<S>::JsonParser(ParsersManager<S> *p, std::shared_ptr<S> header)
     // Резервирую место для большого количества объектов.
     // Не самое оптимальное решение, но свою пользу оно приносит:
     _jsonObjects.reserve(12000);
+}
+
+template<typename S>
+JsonParser<S>::~JsonParser()
+{
+    qDebug() << "JsonParser::~dtor() called";
 }
 
 template<typename S>
@@ -87,7 +94,7 @@ void JsonParser<S>::readBlocks(std::string &&data)
         }
         // Если начало следующего сообщения находится в текущей дейтаграмме:
         if (!data.empty())
-            AbstractParser<S>::_parsersManager->readMsgFromBeginning(std::move(data)); // Переход к решению подзадачи "Чтение сообщения"
+            AbstractParser<S>::_parsersManager.lock()->readMsgFromBeginning(std::move(data)); // Переход к решению подзадачи "Чтение сообщения"
     }
     else
     {
@@ -100,10 +107,10 @@ void JsonParser<S>::readBlocks(std::string &&data)
             qDebug() << s;
             emit AbstractParser<S>::parsingError(s);
             data.erase(0, jsonEnd);
-            AbstractParser<S>::_parsersManager->readMsgFromBeginning(std::move(data)); // Переход к решению подзадачи "Чтение сообщения"
+            AbstractParser<S>::_parsersManager.lock()->readMsgFromBeginning(std::move(data)); // Переход к решению подзадачи "Чтение сообщения"
         }
         else { // Сохраняем "кусок сообщения", ожидаем следующую дейтаграмму:
-            AbstractParser<S>::_parsersManager->savePieceOfData(std::move(data));
+            AbstractParser<S>::_parsersManager.lock()->savePieceOfData(std::move(data));
         }
     }
 }
