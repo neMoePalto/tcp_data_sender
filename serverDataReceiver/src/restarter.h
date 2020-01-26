@@ -4,8 +4,8 @@
 #include <QTimer>
 #include <QDebug>
 #include <tr1/random>
+#include <memory>
 #include "tcpserver.h"
-
 // Класс управляет сервером в соответствии с выбранным режимом.
 // Last refactoring: 2017.04.21
 
@@ -22,7 +22,7 @@ class Restarter : public QObject
 {
     Q_OBJECT
 public:
-    explicit Restarter(Widget *w); // Warn: Разобраться с объектными иерархиями
+    explicit Restarter(std::weak_ptr<Widget> w); // Warn: Разобраться с объектными иерархиями
     ~Restarter(); // f.e.
     void restart(quint16 port, TcpServerMode mode, quint32 rstVal = 0);
     void close();
@@ -31,15 +31,15 @@ public:
 private slots:
     // Внутри метода реализована обработка ситуации, когда port == 0.
     // Тем не менее, для первого запуска порт необходим! : - Cтранный подход. Разобраться. Переписать.
-    void restartServer(quint16 port = 0);
+    void restartServer();
 
 private:
-    Widget      *wgt;
-    QTimer      *tmr;
-    TcpServer*  _server;
-    ushort      port;
+    std::weak_ptr<Widget> _widget;
+    std::unique_ptr<QTimer> _timer;
+    std::unique_ptr<TcpServer> _server;
+    ushort  _port;
     TcpServerMode   mode;
-    int         restartVal;
+    int         _restartVal;
     std::tr1::random_device rand;
     const uint nPorts = 9; //24
 

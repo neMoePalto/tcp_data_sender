@@ -12,28 +12,49 @@
 #include "headerdescription.h"
 
 template<typename S>
-ParsersManager<S>::ParsersManager(Widget *w, std::shared_ptr<S> header)
+ParsersManager<S>::ParsersManager(std::weak_ptr<Widget> w
+                                  , std::shared_ptr<S> header)
     : _widget(w)
     , _header(header)
 {
-//    _jsonParser   = std::make_shared<JsonParser<DataHeader>>(this);
-//    _structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>(this);
-    auto _jsonParser   = std::make_shared<JsonParser<
-            HeaderDescription<DataHeader>>>(this, _header);
-    auto _structParser = std::make_shared<StructParser<SomeStruct,
-            HeaderDescription<DataHeader>>>(this, _header);
-
-    // 2 байта, определяющие тип передаваемых данных:
-    _dataParsers.insert({"JJ", _jsonParser});
-    _dataParsers.insert({"SS", _structParser});
-
-    // Связываем сигналы объектов производных классов со слотами:
-    QObject::connect(_jsonParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
-                     _widget,           SLOT(printParsingResults(MessageParsingResult)) );
-    QObject::connect(_structParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
-                     _widget,             SLOT(printParsingResults(MessageParsingResult)) );
 }
 
+template<typename S>
+void ParsersManager<S>::init()
+{
+    //    _jsonParser   = std::make_shared<JsonParser<DataHeader>>(this);
+    //    _structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>(this);
+        auto _jsonParser   = std::make_shared
+                <JsonParser<HeaderDescription<DataHeader>>>
+                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this(), _header);
+        auto _structParser = std::make_shared
+                <StructParser<SomeStruct,HeaderDescription<DataHeader>>>
+                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this(), _header);
+
+        // 2 байта, определяющие тип передаваемых данных:
+        _dataParsers.insert({"JJ", _jsonParser});
+        _dataParsers.insert({"SS", _structParser});
+        // Связываем сигналы объектов производных классов со слотами:
+        QObject::connect(_jsonParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
+                         _widget.lock().get(),  SLOT(printParsingResults(MessageParsingResult)) );
+        QObject::connect(_structParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
+                         _widget.lock().get(),  SLOT(printParsingResults(MessageParsingResult)) );
+}
+
+template<typename S>
+std::shared_ptr<ParsersManager<S>>
+ParsersManager<S>::create(std::weak_ptr<Widget> w, std::shared_ptr<S> header)
+{
+    auto ptr = std::shared_ptr<ParsersManager<S>>(new ParsersManager<S>(w, header));
+    ptr->init();
+    return ptr;
+}
+
+template<typename S>
+ParsersManager<S>::~ParsersManager()
+{
+    qDebug() << "ParsersManager::~dtor() called";
+}
 
 template<typename S>
 void ParsersManager<S>::savePieceOfData(std::string&& piece)

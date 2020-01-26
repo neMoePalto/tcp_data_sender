@@ -12,7 +12,7 @@ template<typename S>
 class AbstractParser : public AbstractParserSignalsSlots
 {
 public:
-    AbstractParser(ParsersManager<S>* p
+    AbstractParser(std::weak_ptr<ParsersManager<S>> p
                    , std::shared_ptr<S> header);
     virtual ~AbstractParser() = default;
     virtual void clearCollection() = 0;
@@ -22,7 +22,7 @@ public:
 protected:
     std::shared_ptr<AverageTime> _oneObjectSerializingTimer;
     std::shared_ptr<AverageTime> _wholeMessageParsingTimer;
-    ParsersManager<S>* _parsersManager = nullptr;
+    std::weak_ptr<ParsersManager<S>> _parsersManager{};
     std::shared_ptr<S> _header;
     friend void ParsersManager<S>::readMsgFromBeginning(std::string &&data);
 

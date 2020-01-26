@@ -4,8 +4,8 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    Widget w;
-    w.show();
+    auto w = std::make_shared<Widget>();
+    w->show();
 
     return app.exec();
 }
