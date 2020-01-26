@@ -1,0 +1,6 @@
+bin/
+temp/
+Makefile
+*.pro.*
+.qmake.stash
+

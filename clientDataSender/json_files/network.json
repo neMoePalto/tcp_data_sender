@@ -1,0 +1,45 @@
+{
+    "realTmConfiguration":
+    {
+        "mainServers":
+        {
+            "pair1": "127.0.0.1",
+            "pair2": "10.10.10.2",
+            "pair3": "10.10.145.2",
+            "pair4": "192.168.4.104",
+            "pair5": "192.168.5.105"
+        },
+        "resServers":
+        {
+            "pair1": "192.168.1.148",   
+            "pair2": "192.168.35.1",    
+            "pair3": "10.10.144.2"
+        }
+    },
+
+    "unrTmConfiguration":
+    {
+        "mainServers":      
+        {
+            "pair1": "192.168.14.3",
+            "pair2": "192.168.13.200",    
+            "pair3": "192.168.82.108",   
+            "pair4": "192.168.92.109",   
+            "pair5": "192.168.10.110"
+        },
+        "resServers":
+        {
+            "pair3": "192.168.35.35"
+        }
+    },
+
+    "agentLocalPort": 33012,
+    "headControlLocalPort": 33026,
+    "headControlIP":
+    [
+        "127.0.0.1",
+        "1.1.1.6",
+        "10.10.1.2"
+    ]
+}
+
