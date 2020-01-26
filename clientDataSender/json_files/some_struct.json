@@ -1,0 +1,20 @@
+{
+    "memb_a": 32,
+    "memb_b": 8,
+    "memb_c": 32,
+    "memb_d": 8,
+    "memb_e": 32,
+    "memb_f": 32,
+
+    "memb_g": 16,
+    "memb_h": 8,
+    "memb_i": 16,
+    "memb_g": 16,
+
+    "memb_k": 32,
+    "memb_l": 32,
+    "memb_m":
+        [32, 32, 32 ],
+    "memb_n": 32
+}
+
