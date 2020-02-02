@@ -11,13 +11,15 @@ TcpServer::TcpServer(ushort connectionLimit)
     // был равен 4606400 (обмен по сети)
     _buff.reserve(6800100);
     _server = new QTcpServer(this);
-    connect(_server, SIGNAL(newConnection()),   this, SLOT(slotNewConnection()) );
+    connect(_server, &QTcpServer::newConnection,
+            this, &TcpServer::slotNewConnection);
 }
 
 TcpServer::~TcpServer()
 {
     close(); // Без этого метода тоже работает
     delete _server;
+    qDebug() << "TcpServer::~dtor() called";
 }
 
 void TcpServer::start(ushort port)
@@ -69,8 +71,8 @@ void TcpServer::slotNewConnection()
     // Раскомментировать для отладки поведения сокетов:
 //    connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
 //            this,     SLOT(slotCliStateChanged(QAbstractSocket::SocketState)) );
-    connect(socket, SIGNAL(readyRead()),        this, SLOT(slotRead()) );
-    connect(socket, SIGNAL(disconnected()),     this, SLOT(deleteSocket()) );
+    connect(socket, &QTcpSocket::readyRead,     this, &TcpServer::slotRead);
+    connect(socket, &QTcpSocket::disconnected,  this, &TcpServer::deleteSocket);
 
     emit clientConnected(socket->peerPort());
 //    auto sz = _server->findChildren<QTcpSocket* >().size();

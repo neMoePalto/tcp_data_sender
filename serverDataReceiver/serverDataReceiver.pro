@@ -22,6 +22,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
+        src/all_struct_parser/abstractp.cpp \
+        src/all_struct_parser/unistructparser.cpp \
         src/averagetime.cpp \
         src/main.cpp \
         src/restarter.cpp \
@@ -29,6 +31,8 @@ SOURCES += \
         src/widget.cpp
 
 HEADERS += \
+        src/all_struct_parser/abstractp.h \
+        src/all_struct_parser/unistructparser.h \
         src/averagetime.h \
         src/dataheader.h \
         src/headerdescription.h \

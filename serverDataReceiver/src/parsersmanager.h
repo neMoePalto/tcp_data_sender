@@ -2,10 +2,6 @@
 #define PARSERSMANAGER_H
 #include <memory>
 #include <map>
-#include "averagetime.h"
-#include "dataheader.h"
-//#include "parsers/structparser.h"
-//#include "somestruct.h"
 
 /*
  * Для определенности введем терминологию:
@@ -34,14 +30,28 @@ template<typename S>
 class AbstractParser;
 class Widget;
 
+class AbstractP;
+
+
 template<typename S>
-class ParsersManager
+class ParsersManager :
+        public std::enable_shared_from_this<ParsersManager<S>>
 {
+private:
+    void init();
+    explicit ParsersManager(std::weak_ptr<Widget> w
+                            , std::shared_ptr<S> header);
 public:
-    explicit ParsersManager(Widget* w, std::shared_ptr<S> header);
+    static std::shared_ptr<ParsersManager>
+    create(std::weak_ptr<Widget> w, std::shared_ptr<S> header);
+
+    ParsersManager(const ParsersManager& other) = delete;
+    ParsersManager& operator=(const ParsersManager& other) = delete;
+    ~ParsersManager();
     void parseMsg(char* dataFromTcp, int size);
-    void readMsgFromBeginning(std::string&& data);
     void savePieceOfData(std::string&& piece);
+    void readMsgFromBeginning(std::string&& data, S* ptr = nullptr);
+    std::shared_ptr<S> headerDescription() const;
 private:
     using ShPtrAbstractParser = std::shared_ptr<AbstractParser<S>>;
     ShPtrAbstractParser _currentParser;
@@ -54,11 +64,15 @@ private:
 //    std::shared_ptr<StructParser<SomeStruct>> _structParser;
 //    ShPtrAbstractParser _structParser;
     std::map<std::string, ShPtrAbstractParser> _dataParsers;
-    Widget* _widget;
+    std::weak_ptr<Widget> _widget;
     std::shared_ptr<S> _header;
     std::string _pieceOfData{};
     ShPtrAbstractParser chooseParserByDataType(const std::string& type);
+
+    // Experimental:
+    std::map<ushort, std::shared_ptr<AbstractP>> _dataParsers_2;
 };
+
 
 #include "parsersmanager_impl.h"
 #endif // PARSERSMANAGER_H

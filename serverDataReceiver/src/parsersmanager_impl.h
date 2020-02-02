@@ -10,30 +10,63 @@
 #include <QDebug>
 #include <QObject>
 #include "headerdescription.h"
+#include "parsers/abstractparser.h"
+#include "all_struct_parser/unistructparser.h"
 
 template<typename S>
-ParsersManager<S>::ParsersManager(Widget *w, std::shared_ptr<S> header)
+ParsersManager<S>::ParsersManager(std::weak_ptr<Widget> w
+                                  , std::shared_ptr<S> header)
     : _widget(w)
     , _header(header)
 {
-//    _jsonParser   = std::make_shared<JsonParser<DataHeader>>(this);
-//    _structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>(this);
-    auto _jsonParser   = std::make_shared<JsonParser<
-            HeaderDescription<DataHeader>>>(this, _header);
-    auto _structParser = std::make_shared<StructParser<SomeStruct,
-            HeaderDescription<DataHeader>>>(this, _header);
-
-    // 2 байта, определяющие тип передаваемых данных:
-    _dataParsers.insert({"JJ", _jsonParser});
-    _dataParsers.insert({"SS", _structParser});
-
-    // Связываем сигналы объектов производных классов со слотами:
-    QObject::connect(_jsonParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
-                     _widget,           SLOT(printParsingResults(MessageParsingResult)) );
-    QObject::connect(_structParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
-                     _widget,             SLOT(printParsingResults(MessageParsingResult)) );
 }
 
+template<typename S>
+void ParsersManager<S>::init()
+{
+    //    _jsonParser   = std::make_shared<JsonParser<DataHeader>>(this);
+    //    _structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>(this);
+        auto jsonParser   = std::make_shared<JsonParser<S>>
+                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
+        auto structParser = std::make_shared<StructParser<SomeStruct, S>>
+                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
+
+        // 2 байта, определяющие тип передаваемых данных:
+        _dataParsers.insert({"JJ", jsonParser});
+        _dataParsers.insert({"SS", structParser});
+        // Связываем сигналы объектов производных классов со слотами:
+        QObject::connect(jsonParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
+                         _widget.lock().get(),  SLOT(printParsingResults(MessageParsingResult)) );
+        QObject::connect(structParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
+                         _widget.lock().get(),  SLOT(printParsingResults(MessageParsingResult)) );
+
+
+        // Experimental:
+        auto parser_01 = std::make_shared<UniStructParser<SomeStruct>>();
+        _dataParsers_2.insert({0x01AA, parser_01});
+
+}
+
+template<typename S>
+std::shared_ptr<ParsersManager<S>>
+ParsersManager<S>::create(std::weak_ptr<Widget> w, std::shared_ptr<S> header)
+{
+    auto ptr = std::shared_ptr<ParsersManager<S>>(new ParsersManager<S>(w, header));
+    ptr->init();
+    return ptr;
+}
+
+template<typename S>
+ParsersManager<S>::~ParsersManager()
+{
+    qDebug() << "ParsersManager::~dtor() called";
+}
+
+template<typename S>
+std::shared_ptr<S> ParsersManager<S>::headerDescription() const
+{
+    return _header;
+}
 
 template<typename S>
 void ParsersManager<S>::savePieceOfData(std::string&& piece)
@@ -68,8 +101,8 @@ void ParsersManager<S>::parseMsg(char* dataFromTcp, int size)
     readMsgFromBeginning(std::move(data)); // Решение подзадачи "Чтение сообщения"
 }
 
-template<typename S>
-void ParsersManager<S>::readMsgFromBeginning(std::string &&data)
+template<>
+void ParsersManager<HdrDescrDH>::readMsgFromBeginning(std::string &&data, HdrDescrDH* /*ptr*/)
 {   // Проверяем сообщение на наличие префикса:
     if (_header->prefixPos(data) == 0)
     {
@@ -79,7 +112,7 @@ void ParsersManager<S>::readMsgFromBeginning(std::string &&data)
             qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
             return;
         }
-        _currentParser->_wholeMessageParsingTimer->fixStartTime();
+        _currentParser->fixStartTime();
         // Извлекаем длину:
 //        auto totalLen = getLen(data);
         auto totalLen = _header->getLen(data);
@@ -94,6 +127,21 @@ void ParsersManager<S>::readMsgFromBeginning(std::string &&data)
         qDebug() << QObject::tr("Активный парсер почему-то не выбран. Разбор сообщения прерван.");
         return;
     }
+    _currentParser->readBlocks(std::move(data));
+}
+
+template<>
+void ParsersManager<HdrDescrEmpH>::readMsgFromBeginning(std::string &&data, HdrDescrEmpH* /*ptr*/)
+{
+    _currentParser = chooseParserByDataType(data.substr(2, 2));
+    if (_currentParser == nullptr)
+    {
+        qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
+        return;
+    }
+    _currentParser->fixStartTime();
+    _currentParser->setTotalLen(data.size()); // is need?
+    _currentParser->clearCollection(); // не совсем верно для наших условий
     _currentParser->readBlocks(std::move(data));
 }
 

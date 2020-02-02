@@ -8,22 +8,13 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QTableWidget>
-#include "restarter.h"
-#include "parsersmanager.h"
-#include "parsers/abstractparser.h"
-#include "headerdescription.h"
+#include <memory>
+#include "parsers/abstractparsersignalsslots.h"
 
 namespace MySpace {
 const int a = 4;
 const char b = 'b';
 }
-
-struct Temp
-{
-    int a;
-    char b;
-};
-
 
 enum class ClearLabelsPolicy
 {
@@ -31,16 +22,24 @@ enum class ClearLabelsPolicy
     ExceptFirst
 };
 
+template<typename S>
+class HeaderDescription;
+
+template<typename S>
+class ParsersManager;
+
+class Restarter;
 class QTime;
 class DataHeader;
-class Widget : public QWidget
+class Widget :
+        public QWidget,
+        public std::enable_shared_from_this<Widget>
 {
     Q_OBJECT
 public:
     Widget();
-    ~Widget();
+    ~Widget() override;
     using ptrFnProcessing = void(Widget::*)(QByteArray ba);
-
 public slots:
     void processMsg(std::vector<char> &data, int size, ushort portFrom);
     void slotCliConnected(quint16 port);
@@ -52,7 +51,7 @@ private slots:
     void slotStopServer();
     void clearOutput();
 private:
-    Restarter*  _restarter;
+    std::unique_ptr<Restarter> _restarter;
     using TcpPort = ushort;
     using ShPtrParser
     = std::shared_ptr<ParsersManager<HeaderDescription<DataHeader>>>;
@@ -61,7 +60,7 @@ private:
     QTableWidget* _tableStatistics;
     QTextEdit*  _teStatistics;
     QTextEdit*  _teErrors;
-    QTime*      _time;
+    std::unique_ptr<QTime> _time;
     QLineEdit*  _lePort;
     QLineEdit*  _leRestartValue;
     QLabel*     _lbCurrentPort;
@@ -81,6 +80,7 @@ private:
     void printJsonObjAmount(ulong size);
     ShPtrParser getParser(TcpPort port);
 //    void    updateGui();
+    void showEvent(QShowEvent* /*event*/) override;
 };
 
 #endif // WIDGET_H

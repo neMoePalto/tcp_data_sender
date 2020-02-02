@@ -2,8 +2,8 @@
 #include <QHBoxLayout>
 #include <QTime>
 #include <QHeaderView>
-#include "dataheader.h"
-//#include "headerdescription.h"
+#include "parsersmanager.h"
+#include "restarter.h"
 
 Widget::Widget()
 {
@@ -11,10 +11,9 @@ Widget::Widget()
 //    if (b == MySpace::a)
 //        qDebug() << "namespace works!";
 
-    _restarter = new Restarter(this);
     quint16 defaultPort = 3600;
     quint32 defaultRestartValue = 0;
-    _time = new QTime();
+    _time = std::make_unique<QTime>();
 
     // --------------------- GUI --------------------
     _green0  = new QPalette(Qt::green);
@@ -116,15 +115,27 @@ Widget::Widget()
     setMinimumHeight(800);
     connect(_pbStart, SIGNAL(clicked()),            this, SLOT(slotStartServer()) );
     connect(_pbClearOutput, SIGNAL(clicked()),      this, SLOT(clearOutput()) );
-    // Активируем сервер:
-    _pbStart->click();
 }
 
 Widget::~Widget()
 {
-    delete _restarter;
-    delete _time;
+    qDebug() << "Widget::~dtor() called";
 }
+
+void Widget::showEvent(QShowEvent* /*event*/)
+{
+    // Т.к. метод shared_from_this() не может быть использован в конструкторе
+    // класса Widget, конструировать объект класса Restarter приходится
+    // в данном методе.
+    if (_restarter == nullptr)
+    {
+        _restarter = std::make_unique<Restarter>(shared_from_this());
+        // Активируем сервер:
+        _pbStart->click();
+    }
+//    qDebug() << "Widget::showEvent() called!";
+}
+
 
 void Widget::printJsonObjAmount(ulong size)
 {
@@ -189,9 +200,9 @@ Widget::ShPtrParser Widget::getParser(TcpPort port)
     if (it == _parsers.end())
     {
         DataHeader header{0x1002, 0xdddd, 0, 0x1003};
+//        EmptyHeader header;
         auto hd = std::make_shared<HeaderDescription<DataHeader>>(header);
-        auto p = std::make_shared
-                <ParsersManager<HeaderDescription<DataHeader>>>(this, hd);
+        auto p = ParsersManager<HeaderDescription<DataHeader>>::create(shared_from_this(), hd);
         _parsers.insert({port, p});
         return p;
     }

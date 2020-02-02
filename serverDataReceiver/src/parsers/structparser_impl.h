@@ -5,15 +5,20 @@
 #include <QDebug>
 #include <QObject>
 #include <netinet/in.h>
-//#include "structparser.h"
 #include "parsersmanager.h"
 
 
 template<typename T, typename S>
-StructParser<T,S>::StructParser(ParsersManager<S> *p, std::shared_ptr<S> header)
-    : AbstractParser<S>(p, header)
+StructParser<T,S>::StructParser(std::weak_ptr<ParsersManager<S>> pm)
+    : AbstractParser<S>(pm)
 {
     _structObjects.reserve(12000);
+}
+
+template<typename T, typename S>
+StructParser<T,S>::~StructParser()
+{
+    qDebug() << "StructParser::~dtor() called";
 }
 
 template<typename T, typename S>
@@ -36,7 +41,7 @@ void StructParser<T,S>::createObject(std::string &data, size_t pos)
     AbstractParser<S>::_totalLen = AbstractParser<S>::_totalLen - (pos + 4);
 
     if (AbstractParser<S>::_totalLen == 0 && data.substr(0, 2)
-            == AbstractParser<S>::_header->postfixStr())
+            == AbstractParser<S>::_parsersManager.lock()->headerDescription()->postfixStr())
     {
         data.erase(0, 2);
     }
@@ -62,14 +67,14 @@ void StructParser<T,S>::readBlocks(std::string &&data)
             {
 //                qDebug() << tr("Вторая часть рассматриваемого блока данных "
 //                               "находится за пределами текущего сообщения.");
-                AbstractParser<S>::_parsersManager->savePieceOfData(std::move(data));
+                AbstractParser<S>::_parsersManager.lock()->savePieceOfData(std::move(data));
                 return;
             }
             createObject(data, len);
         }
         else {
             qDebug() << QObject::tr("Количество оставшихся байт < 4. Сохраняем их.");
-            AbstractParser<S>::_parsersManager->savePieceOfData(std::move(data));
+            AbstractParser<S>::_parsersManager.lock()->savePieceOfData(std::move(data));
             return;
         }
     }
@@ -86,7 +91,7 @@ void StructParser<T,S>::readBlocks(std::string &&data)
         qDebug() << "-- Structs amount = " << _structObjects.size();
 
         if (!data.empty())
-            AbstractParser<S>::_parsersManager->readMsgFromBeginning(std::move(data));
+            AbstractParser<S>::_parsersManager.lock()->readMsgFromBeginning(std::move(data));
     }
 }
 
