@@ -3,7 +3,6 @@
 #endif
 
 #include <algorithm>
-//#include <string>
 #include <netinet/in.h>
 #include <QDebug>
 #include "headerdescription.h"

@@ -8,9 +8,8 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QTableWidget>
-#include "restarter.h"
-#include "parsers/abstractparser.h"
-#include "headerdescription.h"
+#include <memory>
+#include "parsers/abstractparsersignalsslots.h"
 
 namespace MySpace {
 const int a = 4;
@@ -24,9 +23,12 @@ enum class ClearLabelsPolicy
 };
 
 template<typename S>
+class HeaderDescription;
+
+template<typename S>
 class ParsersManager;
 
-
+class Restarter;
 class QTime;
 class DataHeader;
 class Widget :

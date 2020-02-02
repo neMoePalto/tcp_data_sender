@@ -3,6 +3,7 @@
 #include <QTime>
 #include <QHeaderView>
 #include "parsersmanager.h"
+#include "restarter.h"
 
 Widget::Widget()
 {
