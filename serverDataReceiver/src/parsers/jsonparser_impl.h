@@ -7,12 +7,12 @@
 #include "parsersmanager.h"
 
 template<typename S>
-JsonParser<S>::JsonParser(std::weak_ptr<ParsersManager<S>> p
-                          , std::shared_ptr<S> header)
-    : AbstractParser<S>(p, header)
+JsonParser<S>::JsonParser(std::weak_ptr<ParsersManager<S>> pm)
+    : AbstractParser<S>(pm)
 {
     _delimiterJsonPostfix = "}\n";
-    _delimiterJsonPostfix += AbstractParser<S>::_header->postfixStr();
+    _delimiterJsonPostfix +=
+            AbstractParser<S>::_parsersManager.lock()->headerDescription()->postfixStr();
     // Резервирую место для большого количества объектов.
     // Не самое оптимальное решение, но свою пользу оно приносит:
     _jsonObjects.reserve(12000);
@@ -98,7 +98,9 @@ void JsonParser<S>::readBlocks(std::string &&data)
     }
     else
     {
-        size_t jsonEnd = AbstractParser<S>::_header->prefixPos(data);
+        size_t jsonEnd =
+                AbstractParser<S>::_parsersManager.lock()->headerDescription()->prefixPos(data);
+//                _header->prefixPos(data);
         if (jsonEnd != std::string::npos)
         {   // В общем случае это условие не должно выполняться:
             QString s(QObject::tr("Удаляем мусор, расположенный перед префиксом нового сообщения."

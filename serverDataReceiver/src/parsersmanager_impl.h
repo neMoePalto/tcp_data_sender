@@ -26,9 +26,9 @@ void ParsersManager<S>::init()
     //    _jsonParser   = std::make_shared<JsonParser<DataHeader>>(this);
     //    _structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>(this);
         auto _jsonParser   = std::make_shared<JsonParser<S>>
-                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this(), _header);
+                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
         auto _structParser = std::make_shared<StructParser<SomeStruct, S>>
-                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this(), _header);
+                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
 
         // 2 байта, определяющие тип передаваемых данных:
         _dataParsers.insert({"JJ", _jsonParser});
@@ -116,3 +116,19 @@ void ParsersManager<HdrDescrDH>::readMsgFromBeginning(std::string &&data, HdrDes
     }
     _currentParser->readBlocks(std::move(data));
 }
+
+template<>
+void ParsersManager<HdrDescrEmpH>::readMsgFromBeginning(std::string &&data, HdrDescrEmpH* /*ptr*/)
+{
+    _currentParser = chooseParserByDataType(data.substr(2, 2));
+    if (_currentParser == nullptr)
+    {
+        qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
+        return;
+    }
+    _currentParser->fixStartTime();
+    _currentParser->setTotalLen(data.size()); // is need?
+    _currentParser->clearCollection(); // не совсем верно для наших условий
+    _currentParser->readBlocks(std::move(data));
+}
+

@@ -10,9 +10,8 @@
 
 
 template<typename T, typename S>
-StructParser<T,S>::StructParser(std::weak_ptr<ParsersManager<S>> p
-                                , std::shared_ptr<S> header)
-    : AbstractParser<S>(p, header)
+StructParser<T,S>::StructParser(std::weak_ptr<ParsersManager<S>> pm)
+    : AbstractParser<S>(pm)
 {
     _structObjects.reserve(12000);
 }
@@ -43,7 +42,8 @@ void StructParser<T,S>::createObject(std::string &data, size_t pos)
     AbstractParser<S>::_totalLen = AbstractParser<S>::_totalLen - (pos + 4);
 
     if (AbstractParser<S>::_totalLen == 0 && data.substr(0, 2)
-            == AbstractParser<S>::_header->postfixStr())
+            == AbstractParser<S>::_parsersManager.lock()->headerDescription()->postfixStr())
+//            _header->postfixStr())
     {
         data.erase(0, 2);
     }

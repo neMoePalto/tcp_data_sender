@@ -49,6 +49,10 @@ public:
     void parseMsg(char* dataFromTcp, int size);
     void savePieceOfData(std::string&& piece);
     void readMsgFromBeginning(std::string&& data, S* ptr = nullptr);
+    std::shared_ptr<S> headerDescription() const
+    {
+        return _header;
+    }
 private:
     using ShPtrAbstractParser = std::shared_ptr<AbstractParser<S>>;
     ShPtrAbstractParser _currentParser;

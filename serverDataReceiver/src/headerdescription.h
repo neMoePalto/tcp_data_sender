@@ -3,6 +3,7 @@
 #include <string>
 
 struct DataHeader;
+struct EmptyHeader;
 
 template<typename S>
 class HeaderDescription
@@ -25,6 +26,7 @@ private:
     std::string _postfixStr{};
 };
 using HdrDescrDH = HeaderDescription<DataHeader>;
+using HdrDescrEmpH = HeaderDescription<EmptyHeader>;
 
 #include "headerdescription_impl.h"
 #endif // HEADERDESCRIPTION_H

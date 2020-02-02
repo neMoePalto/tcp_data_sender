@@ -5,10 +5,8 @@
 #include "abstractparser.h"
 
 template<typename S>
-AbstractParser<S>::AbstractParser(std::weak_ptr<ParsersManager<S>> p
-                                  , std::shared_ptr<S> header)
-    : _parsersManager(p)
-    , _header(header)
+AbstractParser<S>::AbstractParser(std::weak_ptr<ParsersManager<S>> pm)
+    : _parsersManager(pm)
 {
     _oneObjectSerializingTimer = std::make_shared<AverageTime>();
     _wholeMessageParsingTimer  = std::make_shared<AverageTime>();
