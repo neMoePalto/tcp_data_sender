@@ -24,6 +24,7 @@ private:
     std::string _prefixStr{};
     std::string _postfixStr{};
 };
+using HdrDescrDH = HeaderDescription<DataHeader>;
 
 #include "headerdescription_impl.h"
 #endif // HEADERDESCRIPTION_H

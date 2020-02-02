@@ -9,7 +9,6 @@
 #include <QTextEdit>
 #include <QTableWidget>
 #include "restarter.h"
-#include "parsersmanager.h"
 #include "parsers/abstractparser.h"
 #include "headerdescription.h"
 
@@ -23,6 +22,10 @@ enum class ClearLabelsPolicy
     All,
     ExceptFirst
 };
+
+template<typename S>
+class ParsersManager;
+
 
 class QTime;
 class DataHeader;

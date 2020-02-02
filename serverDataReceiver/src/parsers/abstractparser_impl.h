@@ -19,3 +19,10 @@ void AbstractParser<S>::setTotalLen(ulong len)
 {
     _totalLen = len;
 }
+
+template<typename S>
+void AbstractParser<S>::fixStartTime()
+{
+    _wholeMessageParsingTimer->fixStartTime();
+}
+

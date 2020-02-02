@@ -2,7 +2,7 @@
 #include <QHBoxLayout>
 #include <QTime>
 #include <QHeaderView>
-#include "dataheader.h"
+#include "parsersmanager.h"
 
 Widget::Widget()
 {
