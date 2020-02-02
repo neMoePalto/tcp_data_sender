@@ -5,7 +5,6 @@
 #include <QDebug>
 #include <QObject>
 #include <netinet/in.h>
-//#include "structparser.h"
 #include "parsersmanager.h"
 
 
@@ -43,7 +42,6 @@ void StructParser<T,S>::createObject(std::string &data, size_t pos)
 
     if (AbstractParser<S>::_totalLen == 0 && data.substr(0, 2)
             == AbstractParser<S>::_parsersManager.lock()->headerDescription()->postfixStr())
-//            _header->postfixStr())
     {
         data.erase(0, 2);
     }

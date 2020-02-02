@@ -11,6 +11,7 @@
 #include <QObject>
 #include "headerdescription.h"
 #include "parsers/abstractparser.h"
+#include "all_struct_parser/unistructparser.h"
 
 template<typename S>
 ParsersManager<S>::ParsersManager(std::weak_ptr<Widget> w
@@ -25,19 +26,25 @@ void ParsersManager<S>::init()
 {
     //    _jsonParser   = std::make_shared<JsonParser<DataHeader>>(this);
     //    _structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>(this);
-        auto _jsonParser   = std::make_shared<JsonParser<S>>
+        auto jsonParser   = std::make_shared<JsonParser<S>>
                 (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
-        auto _structParser = std::make_shared<StructParser<SomeStruct, S>>
+        auto structParser = std::make_shared<StructParser<SomeStruct, S>>
                 (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
 
         // 2 байта, определяющие тип передаваемых данных:
-        _dataParsers.insert({"JJ", _jsonParser});
-        _dataParsers.insert({"SS", _structParser});
+        _dataParsers.insert({"JJ", jsonParser});
+        _dataParsers.insert({"SS", structParser});
         // Связываем сигналы объектов производных классов со слотами:
-        QObject::connect(_jsonParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
+        QObject::connect(jsonParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
                          _widget.lock().get(),  SLOT(printParsingResults(MessageParsingResult)) );
-        QObject::connect(_structParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
+        QObject::connect(structParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
                          _widget.lock().get(),  SLOT(printParsingResults(MessageParsingResult)) );
+
+
+        // Experimental:
+        auto parser_01 = std::make_shared<UniStructParser<SomeStruct>>();
+        _dataParsers_2.insert({0x01AA, parser_01});
+
 }
 
 template<typename S>
@@ -53,6 +60,12 @@ template<typename S>
 ParsersManager<S>::~ParsersManager()
 {
     qDebug() << "ParsersManager::~dtor() called";
+}
+
+template<typename S>
+std::shared_ptr<S> ParsersManager<S>::headerDescription() const
+{
+    return _header;
 }
 
 template<typename S>

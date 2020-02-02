@@ -100,7 +100,6 @@ void JsonParser<S>::readBlocks(std::string &&data)
     {
         size_t jsonEnd =
                 AbstractParser<S>::_parsersManager.lock()->headerDescription()->prefixPos(data);
-//                _header->prefixPos(data);
         if (jsonEnd != std::string::npos)
         {   // В общем случае это условие не должно выполняться:
             QString s(QObject::tr("Удаляем мусор, расположенный перед префиксом нового сообщения."
