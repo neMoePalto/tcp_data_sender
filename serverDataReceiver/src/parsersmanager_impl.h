@@ -30,7 +30,6 @@ void ParsersManager<S>::init()
                 (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
         auto structParser = std::make_shared<StructParser<SomeStruct, S>>
                 (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
-
         // 2 байта, определяющие тип передаваемых данных:
         _dataParsers.insert({"JJ", jsonParser});
         _dataParsers.insert({"SS", structParser});

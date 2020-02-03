@@ -53,8 +53,11 @@ private slots:
 private:
     std::unique_ptr<Restarter> _restarter;
     using TcpPort = ushort;
-    using ShPtrParser
-    = std::shared_ptr<ParsersManager<HeaderDescription<DataHeader>>>;
+    using Header = DataHeader;
+//    using Header = EmptyHeader;
+    using HeaderDescr = HeaderDescription<Header>;
+    using ShPtrParser = std::shared_ptr<ParsersManager<HeaderDescr>>;
+
     std::map<TcpPort, ShPtrParser> _parsers{};
     // GUI:
     QTableWidget* _tableStatistics;

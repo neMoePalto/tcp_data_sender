@@ -12,6 +12,7 @@ struct DataHeader
 };
 
 struct EmptyHeader
-{};
+{
+};
 
 #endif // DATAHEADER_H
