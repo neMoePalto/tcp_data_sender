@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <QObject>
 #include "headerdescription.h"
+#include "parsers/abstractparser.h"
 
 template<typename S>
 ParsersManager<S>::ParsersManager(std::weak_ptr<Widget> w
@@ -24,11 +25,9 @@ void ParsersManager<S>::init()
 {
     //    _jsonParser   = std::make_shared<JsonParser<DataHeader>>(this);
     //    _structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>(this);
-        auto _jsonParser   = std::make_shared
-                <JsonParser<HeaderDescription<DataHeader>>>
+        auto _jsonParser   = std::make_shared<JsonParser<S>>
                 (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this(), _header);
-        auto _structParser = std::make_shared
-                <StructParser<SomeStruct,HeaderDescription<DataHeader>>>
+        auto _structParser = std::make_shared<StructParser<SomeStruct, S>>
                 (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this(), _header);
 
         // 2 байта, определяющие тип передаваемых данных:
@@ -89,8 +88,9 @@ void ParsersManager<S>::parseMsg(char* dataFromTcp, int size)
     readMsgFromBeginning(std::move(data)); // Решение подзадачи "Чтение сообщения"
 }
 
-template<typename S>
-void ParsersManager<S>::readMsgFromBeginning(std::string &&data)
+template<>
+void ParsersManager<HeaderDescription<DataHeader>>
+::readMsgFromBeginning(std::string &&data, HeaderDescription<DataHeader>* /*ptr*/)
 {   // Проверяем сообщение на наличие префикса:
     if (_header->prefixPos(data) == 0)
     {
@@ -100,7 +100,7 @@ void ParsersManager<S>::readMsgFromBeginning(std::string &&data)
             qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
             return;
         }
-        _currentParser->_wholeMessageParsingTimer->fixStartTime();
+//        _currentParser->_wholeMessageParsingTimer->fixStartTime();
         // Извлекаем длину:
 //        auto totalLen = getLen(data);
         auto totalLen = _header->getLen(data);

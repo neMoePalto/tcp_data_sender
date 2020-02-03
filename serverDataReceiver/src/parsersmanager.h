@@ -15,7 +15,7 @@
  * - tcp-дейтаграмма - "кусок" последовательности байт, полученный из tcp-потока.
  *
  * При разборе содержимого отдельной tcp-дейтаграммы возникают несколько ситуаций:
- * 1) все сообщение лежит в одной дейтаграмме. Буфферизация на стороне отправителя
+ * 1) все сообщение лежит в одной дейтаграмме. Буферизация на стороне отправителя
  * не проводилась, поэтому никаких "кусков" следующих сообщений в данном сегменте
  * не содержится. Самый простой случай.
  * 2) в одной дейтаграмме лежит несколько сообщений. Т.е. буфферизация проводилась,
@@ -50,8 +50,8 @@ public:
     ParsersManager& operator=(const ParsersManager& other) = delete;
     ~ParsersManager();
     void parseMsg(char* dataFromTcp, int size);
-    void readMsgFromBeginning(std::string&& data);
     void savePieceOfData(std::string&& piece);
+    void readMsgFromBeginning(std::string &&data, S* ptr = nullptr);
 private:
     using ShPtrAbstractParser = std::shared_ptr<AbstractParser<S>>;
     ShPtrAbstractParser _currentParser;

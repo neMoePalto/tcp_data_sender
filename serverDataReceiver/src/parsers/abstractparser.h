@@ -4,9 +4,11 @@
 #include <string>
 #include <memory>
 #include "averagetime.h"
-#include "parsersmanager.h"
+//#include "parsersmanager.h"
 #include "abstractparsersignalsslots.h"
 
+template<typename S>
+class ParsersManager;
 
 template<typename S>
 class AbstractParser : public AbstractParserSignalsSlots
@@ -24,7 +26,7 @@ protected:
     std::shared_ptr<AverageTime> _wholeMessageParsingTimer;
     std::weak_ptr<ParsersManager<S>> _parsersManager{};
     std::shared_ptr<S> _header;
-    friend void ParsersManager<S>::readMsgFromBeginning(std::string &&data);
+//    readMsgFromBeginning(std::string &&data, S* ptr);
 
     ulong _totalLen{0};
 };

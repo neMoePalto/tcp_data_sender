@@ -3,6 +3,7 @@
 #include <QTime>
 #include <QHeaderView>
 #include "dataheader.h"
+#include "parsersmanager.h"
 
 Widget::Widget()
 {
@@ -199,8 +200,9 @@ Widget::ShPtrParser Widget::getParser(TcpPort port)
     if (it == _parsers.end())
     {
         DataHeader header{0x1002, 0xdddd, 0, 0x1003};
-        auto hd = std::make_shared<HeaderDescription<DataHeader>>(header);
-        auto p = ParsersManager<HeaderDescription<DataHeader>>::create(shared_from_this(), hd);
+//        EmptyHeader header;
+        auto hd = std::make_shared<HeaderDescr>(header);
+        auto p = ParsersManager<HeaderDescr>::create(shared_from_this(), hd);
         _parsers.insert({port, p});
         return p;
     }

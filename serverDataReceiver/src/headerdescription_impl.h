@@ -2,8 +2,6 @@
 #error "Do not include this file directly! Use headerdescription.h!"
 #endif
 
-#include <algorithm>
-//#include <string>
 #include <netinet/in.h>
 #include <QDebug>
 #include "headerdescription.h"
@@ -46,17 +44,6 @@ HeaderDescription<S>::~HeaderDescription()
 }
 
 template<typename S>
-ulong HeaderDescription<S>::getLen(std::string &currentDataBlock)
-{
-    ulong len{};
-    uint pos = 4;
-    std::reverse(currentDataBlock.begin() + pos,
-                 currentDataBlock.begin() + pos + 8);
-    memcpy(&len, &currentDataBlock[pos], 8);
-    return len;
-}
-
-template<typename S>
 size_t HeaderDescription<S>::prefixPos(const std::string &currentDataBlock) const
 {
     return currentDataBlock.find(_prefixStr);
@@ -67,3 +54,11 @@ std::string HeaderDescription<S>::postfixStr() const
 {
     return _postfixStr;
 }
+
+//---------------------------------------------
+template<typename S>
+HeaderDescription<S>::HeaderDescription(EmptyHeader header)
+    : _header(header)
+{
+}
+
