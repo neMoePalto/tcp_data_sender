@@ -2,6 +2,7 @@
 #error "Do not include this file directly! Use headerdescription.h!"
 #endif
 
+#include <algorithm>
 #include <netinet/in.h>
 #include <QDebug>
 #include "headerdescription.h"

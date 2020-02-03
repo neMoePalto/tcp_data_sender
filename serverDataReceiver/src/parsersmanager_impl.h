@@ -11,6 +11,7 @@
 #include <QObject>
 #include "headerdescription.h"
 #include "parsers/abstractparser.h"
+#include "all_struct_parser/unistructparser.h"
 
 template<typename S>
 ParsersManager<S>::ParsersManager(std::weak_ptr<Widget> w
@@ -25,19 +26,24 @@ void ParsersManager<S>::init()
 {
     //    _jsonParser   = std::make_shared<JsonParser<DataHeader>>(this);
     //    _structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>(this);
-        auto _jsonParser   = std::make_shared<JsonParser<S>>
-                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this(), _header);
-        auto _structParser = std::make_shared<StructParser<SomeStruct, S>>
-                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this(), _header);
-
+        auto jsonParser   = std::make_shared<JsonParser<S>>
+                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
+        auto structParser = std::make_shared<StructParser<SomeStruct, S>>
+                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
         // 2 байта, определяющие тип передаваемых данных:
-        _dataParsers.insert({"JJ", _jsonParser});
-        _dataParsers.insert({"SS", _structParser});
+        _dataParsers.insert({"JJ", jsonParser});
+        _dataParsers.insert({"SS", structParser});
         // Связываем сигналы объектов производных классов со слотами:
-        QObject::connect(_jsonParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
+        QObject::connect(jsonParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
                          _widget.lock().get(),  SLOT(printParsingResults(MessageParsingResult)) );
-        QObject::connect(_structParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
+        QObject::connect(structParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
                          _widget.lock().get(),  SLOT(printParsingResults(MessageParsingResult)) );
+
+
+        // Experimental:
+        auto parser_01 = std::make_shared<UniStructParser<SomeStruct>>();
+        _dataParsers_2.insert({0x01AA, parser_01});
+
 }
 
 template<typename S>
@@ -53,6 +59,12 @@ template<typename S>
 ParsersManager<S>::~ParsersManager()
 {
     qDebug() << "ParsersManager::~dtor() called";
+}
+
+template<typename S>
+std::shared_ptr<S> ParsersManager<S>::headerDescription() const
+{
+    return _header;
 }
 
 template<typename S>
@@ -89,8 +101,7 @@ void ParsersManager<S>::parseMsg(char* dataFromTcp, int size)
 }
 
 template<>
-void ParsersManager<HeaderDescription<DataHeader>>
-::readMsgFromBeginning(std::string &&data, HeaderDescription<DataHeader>* /*ptr*/)
+void ParsersManager<HdrDescrDH>::readMsgFromBeginning(std::string &&data, HdrDescrDH* /*ptr*/)
 {   // Проверяем сообщение на наличие префикса:
     if (_header->prefixPos(data) == 0)
     {
@@ -100,7 +111,7 @@ void ParsersManager<HeaderDescription<DataHeader>>
             qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
             return;
         }
-//        _currentParser->_wholeMessageParsingTimer->fixStartTime();
+        _currentParser->fixStartTime();
         // Извлекаем длину:
 //        auto totalLen = getLen(data);
         auto totalLen = _header->getLen(data);
@@ -115,6 +126,21 @@ void ParsersManager<HeaderDescription<DataHeader>>
         qDebug() << QObject::tr("Активный парсер почему-то не выбран. Разбор сообщения прерван.");
         return;
     }
+    _currentParser->readBlocks(std::move(data));
+}
+
+template<>
+void ParsersManager<HdrDescrEmpH>::readMsgFromBeginning(std::string &&data, HdrDescrEmpH* /*ptr*/)
+{
+    _currentParser = chooseParserByDataType(data.substr(2, 2));
+    if (_currentParser == nullptr)
+    {
+        qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
+        return;
+    }
+    _currentParser->fixStartTime();
+    _currentParser->setTotalLen(data.size()); // is need?
+    _currentParser->clearCollection(); // не совсем верно для наших условий
     _currentParser->readBlocks(std::move(data));
 }
 

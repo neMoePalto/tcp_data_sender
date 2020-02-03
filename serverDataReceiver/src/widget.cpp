@@ -2,8 +2,8 @@
 #include <QHBoxLayout>
 #include <QTime>
 #include <QHeaderView>
-#include "dataheader.h"
 #include "parsersmanager.h"
+#include "restarter.h"
 
 Widget::Widget()
 {
