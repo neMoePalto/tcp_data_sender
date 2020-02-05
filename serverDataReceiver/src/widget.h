@@ -10,6 +10,7 @@
 #include <QTableWidget>
 #include <memory>
 #include "parsers/abstractparsersignalsslots.h"
+#include "dataheader.h"
 
 namespace MySpace {
 const int a = 4;
@@ -30,7 +31,6 @@ class ParsersManager;
 
 class Restarter;
 class QTime;
-class DataHeader;
 class Widget :
         public QWidget,
         public std::enable_shared_from_this<Widget>
@@ -53,8 +53,8 @@ private slots:
 private:
     std::unique_ptr<Restarter> _restarter;
     using TcpPort = ushort;
-    using Header = DataHeader;
-//    using Header = EmptyHeader;
+//    using Header = DataHeader;
+    using Header = EmptyHeader;
     using HeaderDescr = HeaderDescription<Header>;
     using ShPtrParser = std::shared_ptr<ParsersManager<HeaderDescr>>;
 

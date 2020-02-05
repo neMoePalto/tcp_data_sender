@@ -10,7 +10,6 @@
 #include <QDebug>
 #include <QObject>
 #include "headerdescription.h"
-#include "parsers/abstractparser.h"
 #include "all_struct_parser/unistructparser.h"
 
 template<typename S>
@@ -133,14 +132,14 @@ template<>
 void ParsersManager<HdrDescrEmpH>::readMsgFromBeginning(std::string &&data, HdrDescrEmpH* /*ptr*/)
 {
     _currentParser = chooseParserByDataType(data.substr(2, 2));
-    if (_currentParser == nullptr)
-    {
-        qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
-        return;
-    }
-    _currentParser->fixStartTime();
-    _currentParser->setTotalLen(data.size()); // is need?
-    _currentParser->clearCollection(); // не совсем верно для наших условий
-    _currentParser->readBlocks(std::move(data));
+//    if (_currentParser == nullptr)
+//    {
+//        qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
+//        return;
+//    }
+//    _currentParser->fixStartTime();
+//    _currentParser->setTotalLen(data.size()); // is need?
+//    _currentParser->clearCollection(); // не совсем верно для наших условий
+//    _currentParser->readBlocks(std::move(data));
 }
 

@@ -56,6 +56,23 @@ std::string HeaderDescription<S>::postfixStr() const
     return _postfixStr;
 }
 
+template<>
+ulong HeaderDescription<DataHeader>::getLen(std::string &currentDataBlock)
+{
+    ulong len{};
+    uint pos = 4;
+    std::reverse(currentDataBlock.begin() + pos,
+                 currentDataBlock.begin() + pos + 8);
+    memcpy(&len, &currentDataBlock[pos], 8);
+    return len;
+}
+
+//template<>
+//ulong HeaderDescription<EmptyHeader>::getLen(std::string &currentDataBlock)
+//{
+//    return 15;
+//}
+
 //---------------------------------------------
 template<typename S>
 HeaderDescription<S>::HeaderDescription(EmptyHeader header)
