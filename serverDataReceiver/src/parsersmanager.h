@@ -37,9 +37,9 @@ class Widget;
 class AbstractP;
 
 
-template<typename S>
+template<typename S, typename PFamily>
 class ParsersManager :
-        public std::enable_shared_from_this<ParsersManager<S>>
+        public std::enable_shared_from_this<ParsersManager<S, PFamily>>
 {
 private:
     void init();
@@ -79,7 +79,7 @@ private:
 
 
 template<>
-void ParsersManager<DataHeader>::readMsgFromBeginning(std::string &&data, DataHeader* /*ptr*/)
+void ParsersManager<DataHeader, AbstractParser>::readMsgFromBeginning(std::string &&data, DataHeader* /*ptr*/)
 {   // Проверяем сообщение на наличие префикса:
     if (_header->prefixPos(data) == 0)
     {

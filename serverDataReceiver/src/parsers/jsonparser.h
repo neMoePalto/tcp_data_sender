@@ -12,7 +12,7 @@ public:
     // в производном классе. Идеально для случая, когда задача такого ctor'a
     // сводится к транизиту параметоров в ctor базового класса:
 //    using AbstractParser::AbstractParser;
-    JsonParser(std::weak_ptr<ParsersManager<DataHeader>> pm);
+    JsonParser(std::weak_ptr<ParsersManager<DataHeader, AbstractParser>> pm);
     ~JsonParser() override;
     void clearCollection() override;
     void createObject(std::string &data, size_t posEnd) override;

@@ -12,8 +12,8 @@
 //#include "headerdescription.h"
 #include "all_struct_parser/unistructparser.h"
 
-template<typename S>
-ParsersManager<S>::ParsersManager(std::weak_ptr<Widget> w, S header)
+template<typename S, typename PFamily>
+ParsersManager<S, PFamily>::ParsersManager(std::weak_ptr<Widget> w, S header)
 
     : _widget(w)
     , _header(std::make_shared<HeaderDescription<S>>(header))
@@ -21,14 +21,16 @@ ParsersManager<S>::ParsersManager(std::weak_ptr<Widget> w, S header)
 }
 
 template<>
-void ParsersManager<DataHeader>::init()
+void ParsersManager<DataHeader, AbstractParser>::init()
 {
     //    _jsonParser   = std::make_shared<JsonParser<DataHeader>>(this);
     //    _structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>(this);
         auto jsonParser   = std::make_shared<JsonParser>
-                (std::enable_shared_from_this<ParsersManager<DataHeader>>::shared_from_this() );
+                (std::enable_shared_from_this
+                 <ParsersManager<DataHeader, AbstractParser>>::shared_from_this() );
         auto structParser = std::make_shared<StructParser<SomeStruct>>
-                (std::enable_shared_from_this<ParsersManager<DataHeader>>::shared_from_this() );
+                (std::enable_shared_from_this
+                 <ParsersManager<DataHeader, AbstractParser>>::shared_from_this() );
         // 2 байта, определяющие тип передаваемых данных:
         _dataParsers.insert({"JJ", jsonParser});
         _dataParsers.insert({"SS", structParser});
@@ -46,39 +48,40 @@ void ParsersManager<DataHeader>::init()
 }
 
 template<>
-void ParsersManager<EmptyHeader>::init()
+void ParsersManager<EmptyHeader, AbstractP>::init()
 {}
 
-template<typename S>
-std::shared_ptr<ParsersManager<S>>
-ParsersManager<S>::create(std::weak_ptr<Widget> w, /*std::shared_ptr<S>*/ S header)
+template<typename S, typename PFamily>
+std::shared_ptr<ParsersManager<S, PFamily>>
+ParsersManager<S, PFamily>::create(std::weak_ptr<Widget> w, /*std::shared_ptr<S>*/ S header)
 {
-    auto ptr = std::shared_ptr<ParsersManager<S>>(new ParsersManager<S>(w, header));
+    auto ptr = std::shared_ptr<ParsersManager<S, PFamily>>
+            (new ParsersManager<S, PFamily>(w, header));
     ptr->init();
     return ptr;
 }
 
-template<typename S>
-ParsersManager<S>::~ParsersManager()
+template<typename S, typename PFamily>
+ParsersManager<S, PFamily>::~ParsersManager()
 {
     qDebug() << "ParsersManager::~dtor() called";
 }
 
-template<typename S>
-std::shared_ptr<HeaderDescription<S>> ParsersManager<S>::headerDescription() const
+template<typename S, typename PFamily>
+std::shared_ptr<HeaderDescription<S>> ParsersManager<S, PFamily>::headerDescription() const
 {
     return _header;
 }
 
-template<typename S>
-void ParsersManager<S>::savePieceOfData(std::string&& piece)
+template<typename S, typename PFamily>
+void ParsersManager<S, PFamily>::savePieceOfData(std::string&& piece)
 {
     _pieceOfData = std::move(piece);
 }
 
-template<typename S>
-typename ParsersManager<S>::ShPtrAbstractParser
-ParsersManager<S>::chooseParserByDataType(const std::string& type)
+template<typename S, typename PFamily>
+typename ParsersManager<S, PFamily>::ShPtrAbstractParser
+ParsersManager<S, PFamily>::chooseParserByDataType(const std::string& type)
 {
     auto it = _dataParsers.find(type);
     if (it == _dataParsers.end())
@@ -88,8 +91,8 @@ ParsersManager<S>::chooseParserByDataType(const std::string& type)
     }
 }
 
-template<typename S>
-void ParsersManager<S>::parseMsg(char* dataFromTcp, int size)
+template<typename S, typename PFamily>
+void ParsersManager<S, PFamily>::parseMsg(char* dataFromTcp, int size)
 {
     std::string data(dataFromTcp, static_cast<size_t>(size));
     // Добавляем кусок сообщения, оставшийся после разбора предыдущего сообщения:
@@ -106,7 +109,7 @@ void ParsersManager<S>::parseMsg(char* dataFromTcp, int size)
 
 
 template<>
-void ParsersManager<EmptyHeader>::readMsgFromBeginning(std::string &&data, EmptyHeader* /*ptr*/)
+void ParsersManager<EmptyHeader, AbstractP>::readMsgFromBeginning(std::string &&data, EmptyHeader* /*ptr*/)
 {
     _currentParser = chooseParserByDataType(data.substr(2, 2));
 //    if (_currentParser == nullptr)

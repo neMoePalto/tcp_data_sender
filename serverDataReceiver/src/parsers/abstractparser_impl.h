@@ -4,7 +4,7 @@
 
 #include "abstractparser.h"
 
-AbstractParser::AbstractParser(std::weak_ptr<ParsersManager<DataHeader>> pm)
+AbstractParser::AbstractParser(std::weak_ptr<ParsersManager<DataHeader, AbstractParser>> pm)
     : _parsersManager(pm)
 {
     _oneObjectSerializingTimer = std::make_shared<AverageTime>();

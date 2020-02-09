@@ -9,7 +9,7 @@
 
 
 template<typename T>
-StructParser<T>::StructParser(std::weak_ptr<ParsersManager<DataHeader> > pm)
+StructParser<T>::StructParser(std::weak_ptr<ParsersManager<DataHeader, AbstractParser>> pm)
     : AbstractParser(pm)
 {
     _structObjects.reserve(12000);

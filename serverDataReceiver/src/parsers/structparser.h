@@ -8,7 +8,7 @@ class StructParser : public AbstractParser
 {
 public:
 //    using AbstractParser<S>::AbstractParser;
-    StructParser(std::weak_ptr<ParsersManager<DataHeader>> pm);
+    StructParser(std::weak_ptr<ParsersManager<DataHeader, AbstractParser>> pm);
     ~StructParser() override;
     void clearCollection() override;
     void createObject(std::string &data, size_t pos) override;

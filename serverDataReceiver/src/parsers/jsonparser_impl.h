@@ -7,7 +7,7 @@
 #include "headerdescription.h"
 
 
-JsonParser::JsonParser(std::weak_ptr<ParsersManager<DataHeader>> pm)
+JsonParser::JsonParser(std::weak_ptr<ParsersManager<DataHeader, AbstractParser>> pm)
     : AbstractParser(pm)
 {
     _delimiterJsonPostfix = "}\n";

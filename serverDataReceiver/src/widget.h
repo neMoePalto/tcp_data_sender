@@ -26,8 +26,9 @@ enum class ClearLabelsPolicy
 template<typename S>
 class HeaderDescription;
 
-template<typename S>
+template<typename S, typename PFamily>
 class ParsersManager;
+class AbstractParser;
 
 class Restarter;
 class QTime;
@@ -55,8 +56,8 @@ private:
     using TcpPort = ushort;
     using Header = DataHeader;
 //    using Header = EmptyHeader;
-//    using HeaderDescr = HeaderDescription<Header>;
-    using ShPtrParser = std::shared_ptr<ParsersManager<Header>>;
+    using PFamily = AbstractParser;
+    using ShPtrParser = std::shared_ptr<ParsersManager<Header, PFamily>>;
 
     std::map<TcpPort, ShPtrParser> _parsers{};
     // GUI:
