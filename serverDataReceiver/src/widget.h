@@ -53,10 +53,10 @@ private slots:
 private:
     std::unique_ptr<Restarter> _restarter;
     using TcpPort = ushort;
-//    using Header = DataHeader;
-    using Header = EmptyHeader;
-    using HeaderDescr = HeaderDescription<Header>;
-    using ShPtrParser = std::shared_ptr<ParsersManager<HeaderDescr>>;
+    using Header = DataHeader;
+//    using Header = EmptyHeader;
+//    using HeaderDescr = HeaderDescription<Header>;
+    using ShPtrParser = std::shared_ptr<ParsersManager<Header>>;
 
     std::map<TcpPort, ShPtrParser> _parsers{};
     // GUI:

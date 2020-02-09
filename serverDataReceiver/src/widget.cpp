@@ -200,10 +200,10 @@ Widget::ShPtrParser Widget::getParser(TcpPort port)
     auto it = _parsers.find(port);
     if (it == _parsers.end())
     {
-//        DataHeader header{0x1002, 0xdddd, 0, 0x1003};
-        EmptyHeader header;
-        auto hd = std::make_shared<HeaderDescr>(header);
-        auto p = ParsersManager<HeaderDescr>::create(shared_from_this(), hd);
+        DataHeader header{0x1002, 0xdddd, 0, 0x1003};
+//        EmptyHeader header;
+//        auto hd = std::make_shared<Header>(header);
+        auto p = ParsersManager<Header>::create(shared_from_this(), header);
         _parsers.insert({port, p});
         return p;
     }

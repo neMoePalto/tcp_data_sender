@@ -13,22 +13,22 @@
 #include "all_struct_parser/unistructparser.h"
 
 template<typename S>
-ParsersManager<S>::ParsersManager(std::weak_ptr<Widget> w
-                                  , std::shared_ptr<S> header)
+ParsersManager<S>::ParsersManager(std::weak_ptr<Widget> w, S header)
+
     : _widget(w)
-    , _header(header)
+    , _header(std::make_shared<HeaderDescription<S>>(header))
 {
 }
 
-template<typename S>
-void ParsersManager<S>::init()
+template<>
+void ParsersManager<DataHeader>::init()
 {
     //    _jsonParser   = std::make_shared<JsonParser<DataHeader>>(this);
     //    _structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>(this);
-        auto jsonParser   = std::make_shared<JsonParser<S>>
-                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
-        auto structParser = std::make_shared<StructParser<SomeStruct, S>>
-                (std::enable_shared_from_this<ParsersManager<S>>::shared_from_this() );
+        auto jsonParser   = std::make_shared<JsonParser<DataHeader>>
+                (std::enable_shared_from_this<ParsersManager<DataHeader>>::shared_from_this() );
+        auto structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>
+                (std::enable_shared_from_this<ParsersManager<DataHeader>>::shared_from_this() );
         // 2 байта, определяющие тип передаваемых данных:
         _dataParsers.insert({"JJ", jsonParser});
         _dataParsers.insert({"SS", structParser});
@@ -47,7 +47,7 @@ void ParsersManager<S>::init()
 
 template<typename S>
 std::shared_ptr<ParsersManager<S>>
-ParsersManager<S>::create(std::weak_ptr<Widget> w, std::shared_ptr<S> header)
+ParsersManager<S>::create(std::weak_ptr<Widget> w, /*std::shared_ptr<S>*/ S header)
 {
     auto ptr = std::shared_ptr<ParsersManager<S>>(new ParsersManager<S>(w, header));
     ptr->init();
@@ -61,7 +61,7 @@ ParsersManager<S>::~ParsersManager()
 }
 
 template<typename S>
-std::shared_ptr<S> ParsersManager<S>::headerDescription() const
+std::shared_ptr<HeaderDescription<S>> ParsersManager<S>::headerDescription() const
 {
     return _header;
 }
@@ -100,7 +100,7 @@ void ParsersManager<S>::parseMsg(char* dataFromTcp, int size)
 }
 
 template<>
-void ParsersManager<HdrDescrDH>::readMsgFromBeginning(std::string &&data, HdrDescrDH* /*ptr*/)
+void ParsersManager<DataHeader>::readMsgFromBeginning(std::string &&data, DataHeader* /*ptr*/)
 {   // Проверяем сообщение на наличие префикса:
     if (_header->prefixPos(data) == 0)
     {
@@ -129,7 +129,7 @@ void ParsersManager<HdrDescrDH>::readMsgFromBeginning(std::string &&data, HdrDes
 }
 
 template<>
-void ParsersManager<HdrDescrEmpH>::readMsgFromBeginning(std::string &&data, HdrDescrEmpH* /*ptr*/)
+void ParsersManager<EmptyHeader>::readMsgFromBeginning(std::string &&data, EmptyHeader* /*ptr*/)
 {
     _currentParser = chooseParserByDataType(data.substr(2, 2));
 //    if (_currentParser == nullptr)

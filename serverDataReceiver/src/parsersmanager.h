@@ -27,6 +27,9 @@
 */
 
 template<typename S>
+class HeaderDescription;
+
+template<typename S>
 class AbstractParser;
 class Widget;
 
@@ -40,10 +43,10 @@ class ParsersManager :
 private:
     void init();
     explicit ParsersManager(std::weak_ptr<Widget> w
-                            , std::shared_ptr<S> header);
+                            , /*std::shared_ptr<S>*/ S header);
 public:
     static std::shared_ptr<ParsersManager>
-    create(std::weak_ptr<Widget> w, std::shared_ptr<S> header);
+    create(std::weak_ptr<Widget> w, /*std::shared_ptr<S>*/ S header);
 
     ParsersManager(const ParsersManager& other) = delete;
     ParsersManager& operator=(const ParsersManager& other) = delete;
@@ -51,7 +54,7 @@ public:
     void parseMsg(char* dataFromTcp, int size);
     void savePieceOfData(std::string&& piece);
     void readMsgFromBeginning(std::string &&data, S* ptr = nullptr);
-    std::shared_ptr<S> headerDescription() const;
+    std::shared_ptr<HeaderDescription<S>> headerDescription() const;
 private:
     using ShPtrAbstractParser = std::shared_ptr<AbstractParser<S>>;
     ShPtrAbstractParser _currentParser;
@@ -65,7 +68,7 @@ private:
 //    ShPtrAbstractParser _structParser;
     std::map<std::string, ShPtrAbstractParser> _dataParsers;
     std::weak_ptr<Widget> _widget;
-    std::shared_ptr<S> _header;
+    std::shared_ptr<HeaderDescription<S>> _header;
     std::string _pieceOfData{};
     ShPtrAbstractParser chooseParserByDataType(const std::string& type);
 

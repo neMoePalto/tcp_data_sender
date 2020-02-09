@@ -28,8 +28,8 @@ private:
     std::string _prefixStr{};
     std::string _postfixStr{};
 };
-using HdrDescrDH = HeaderDescription<DataHeader>;
-using HdrDescrEmpH = HeaderDescription<EmptyHeader>;
+//using HdrDescrDH = HeaderDescription<DataHeader>;
+//using HdrDescrEmpH = HeaderDescription<EmptyHeader>;
 
 
 #include "headerdescription_impl.h"
