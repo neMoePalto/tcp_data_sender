@@ -2,7 +2,10 @@
 #define PARSERSMANAGER_H
 #include <memory>
 #include <map>
-
+#include <QDebug>
+#include "dataheader.h"
+#include "headerdescription.h"
+#include "parsers/abstractparser.h"
 /*
  * Для определенности введем терминологию:
  * - сообщение - еденица информационного обмена, существующая на уровне приложения.
@@ -14,7 +17,7 @@
  * 1) все сообщение лежит в одной дейтаграмме. Буферизация на стороне отправителя
  * не проводилась, поэтому никаких "кусков" следующих сообщений в данном сегменте
  * не содержится. Самый простой случай.
- * 2) в одной дейтаграмме лежит несколько сообщений. Т.е. буфферизация проводилась,
+ * 2) в одной дейтаграмме лежит несколько сообщений. Т.е. буферизация проводилась,
  * но, по случайности, сообщения разделились ровно. Случай, возникающий
  * довольно редко, т.к. tcp-протокол ничего не знает о служебных полях сообщения,
  * которые мы сами и ввели.
@@ -26,11 +29,9 @@
  * Самый частый случай.
 */
 
-template<typename S>
-class HeaderDescription;
-
-template<typename S>
-class AbstractParser;
+//template<typename S>
+//class HeaderDescription;
+//class AbstractParser;
 class Widget;
 
 class AbstractP;
@@ -56,7 +57,7 @@ public:
     void readMsgFromBeginning(std::string &&data, S* ptr = nullptr);
     std::shared_ptr<HeaderDescription<S>> headerDescription() const;
 private:
-    using ShPtrAbstractParser = std::shared_ptr<AbstractParser<S>>;
+    using ShPtrAbstractParser = std::shared_ptr<AbstractParser>;
     ShPtrAbstractParser _currentParser;
     // Два эквивалентных способа объявления указателей:
     // Важно понимать, что использование в качестве типа умного указателя
@@ -76,6 +77,35 @@ private:
     std::map<ushort, std::shared_ptr<AbstractP>> _dataParsers_2;
 };
 
+
+template<>
+void ParsersManager<DataHeader>::readMsgFromBeginning(std::string &&data, DataHeader* /*ptr*/)
+{   // Проверяем сообщение на наличие префикса:
+    if (_header->prefixPos(data) == 0)
+    {
+        _currentParser = chooseParserByDataType(data.substr(2, 2));
+        if (_currentParser == nullptr)
+        {
+            qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
+            return;
+        }
+        _currentParser->fixStartTime();
+        // Извлекаем длину:
+//        auto totalLen = getLen(data);
+        auto totalLen = _header->getLen(data);
+        _currentParser->setTotalLen(totalLen);
+        qDebug() << "GET NEW DATA LEN from real packet: " << totalLen;
+        data.erase(0, 12);
+
+        _currentParser->clearCollection();
+    }
+    if (_currentParser == nullptr)
+    {   // В общем случае это условие не должно выполняться:
+        qDebug() << QObject::tr("Активный парсер почему-то не выбран. Разбор сообщения прерван.");
+        return;
+    }
+    _currentParser->readBlocks(std::move(data));
+}
 
 #include "parsersmanager_impl.h"
 #endif // PARSERSMANAGER_H

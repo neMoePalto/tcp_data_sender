@@ -2,14 +2,14 @@
 #error "Do not include this file directly! Use parsersmanager.h!"
 #endif
 
+#include <netinet/in.h>
+#include <QObject>
 #include "parsers/jsonparser.h"
 #include "parsers/structparser.h"
 #include "widget.h"
 #include "somestruct.h"
-#include <netinet/in.h>
-#include <QDebug>
-#include <QObject>
-#include "headerdescription.h"
+//#include <QDebug>
+//#include "headerdescription.h"
 #include "all_struct_parser/unistructparser.h"
 
 template<typename S>
@@ -25,9 +25,9 @@ void ParsersManager<DataHeader>::init()
 {
     //    _jsonParser   = std::make_shared<JsonParser<DataHeader>>(this);
     //    _structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>(this);
-        auto jsonParser   = std::make_shared<JsonParser<DataHeader>>
+        auto jsonParser   = std::make_shared<JsonParser>
                 (std::enable_shared_from_this<ParsersManager<DataHeader>>::shared_from_this() );
-        auto structParser = std::make_shared<StructParser<SomeStruct, DataHeader>>
+        auto structParser = std::make_shared<StructParser<SomeStruct>>
                 (std::enable_shared_from_this<ParsersManager<DataHeader>>::shared_from_this() );
         // 2 байта, определяющие тип передаваемых данных:
         _dataParsers.insert({"JJ", jsonParser});
@@ -44,6 +44,10 @@ void ParsersManager<DataHeader>::init()
         _dataParsers_2.insert({0x01AA, parser_01});
 
 }
+
+template<>
+void ParsersManager<EmptyHeader>::init()
+{}
 
 template<typename S>
 std::shared_ptr<ParsersManager<S>>
@@ -99,34 +103,7 @@ void ParsersManager<S>::parseMsg(char* dataFromTcp, int size)
     readMsgFromBeginning(std::move(data)); // Решение подзадачи "Чтение сообщения"
 }
 
-template<>
-void ParsersManager<DataHeader>::readMsgFromBeginning(std::string &&data, DataHeader* /*ptr*/)
-{   // Проверяем сообщение на наличие префикса:
-    if (_header->prefixPos(data) == 0)
-    {
-        _currentParser = chooseParserByDataType(data.substr(2, 2));
-        if (_currentParser == nullptr)
-        {
-            qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
-            return;
-        }
-        _currentParser->fixStartTime();
-        // Извлекаем длину:
-//        auto totalLen = getLen(data);
-        auto totalLen = _header->getLen(data);
-        _currentParser->setTotalLen(totalLen);
-        qDebug() << "GET NEW DATA LEN from real packet: " << totalLen;
-        data.erase(0, 12);
 
-        _currentParser->clearCollection();
-    }
-    if (_currentParser == nullptr)
-    {   // В общем случае это условие не должно выполняться:
-        qDebug() << QObject::tr("Активный парсер почему-то не выбран. Разбор сообщения прерван.");
-        return;
-    }
-    _currentParser->readBlocks(std::move(data));
-}
 
 template<>
 void ParsersManager<EmptyHeader>::readMsgFromBeginning(std::string &&data, EmptyHeader* /*ptr*/)
