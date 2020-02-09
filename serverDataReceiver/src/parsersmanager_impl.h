@@ -8,8 +8,6 @@
 #include "parsers/structparser.h"
 #include "widget.h"
 #include "somestruct.h"
-//#include <QDebug>
-//#include "headerdescription.h"
 #include "all_struct_parser/unistructparser.h"
 
 template<typename S, typename PFamily>
@@ -32,24 +30,22 @@ void ParsersManager<DataHeader, AbstractParser>::init()
                 (std::enable_shared_from_this
                  <ParsersManager<DataHeader, AbstractParser>>::shared_from_this() );
         // 2 байта, определяющие тип передаваемых данных:
-        _dataParsers.insert({"JJ", jsonParser});
-        _dataParsers.insert({"SS", structParser});
+        _dataParsers.insert({convert("JJ"), jsonParser});
+        _dataParsers.insert({convert("SS"), structParser});
         // Связываем сигналы объектов производных классов со слотами:
         QObject::connect(jsonParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
                          _widget.lock().get(),  SLOT(printParsingResults(MessageParsingResult)) );
         QObject::connect(structParser.get(), SIGNAL(messageParsingComplete(MessageParsingResult)),
                          _widget.lock().get(),  SLOT(printParsingResults(MessageParsingResult)) );
-
-
-        // Experimental:
-        auto parser_01 = std::make_shared<UniStructParser<SomeStruct>>();
-        _dataParsers_2.insert({0x01AA, parser_01});
-
 }
 
 template<>
 void ParsersManager<EmptyHeader, AbstractP>::init()
-{}
+{
+    // Experimental:
+    auto parser_01 = std::make_shared<UniStructParser<SomeStruct>>();
+    _dataParsers.insert({convert("SS"), parser_01});
+}
 
 template<typename S, typename PFamily>
 std::shared_ptr<ParsersManager<S, PFamily>>
@@ -68,7 +64,8 @@ ParsersManager<S, PFamily>::~ParsersManager()
 }
 
 template<typename S, typename PFamily>
-std::shared_ptr<HeaderDescription<S>> ParsersManager<S, PFamily>::headerDescription() const
+std::shared_ptr<HeaderDescription<S>>
+ParsersManager<S, PFamily>::headerDescription() const
 {
     return _header;
 }
@@ -81,7 +78,7 @@ void ParsersManager<S, PFamily>::savePieceOfData(std::string&& piece)
 
 template<typename S, typename PFamily>
 typename ParsersManager<S, PFamily>::ShPtrAbstractParser
-ParsersManager<S, PFamily>::chooseParserByDataType(const std::string& type)
+ParsersManager<S, PFamily>::chooseParserByDataType(ushort type)
 {
     auto it = _dataParsers.find(type);
     if (it == _dataParsers.end())
@@ -107,11 +104,11 @@ void ParsersManager<S, PFamily>::parseMsg(char* dataFromTcp, int size)
 }
 
 
-
 template<>
 void ParsersManager<EmptyHeader, AbstractP>::readMsgFromBeginning(std::string &&data, EmptyHeader* /*ptr*/)
 {
-    _currentParser = chooseParserByDataType(data.substr(2, 2));
+    auto type = convert(data.substr(2, 2));
+    _currentParser = chooseParserByDataType(type);
 //    if (_currentParser == nullptr)
 //    {
 //        qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");

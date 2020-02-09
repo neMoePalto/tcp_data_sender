@@ -23,13 +23,11 @@ enum class ClearLabelsPolicy
     ExceptFirst
 };
 
-template<typename S>
-class HeaderDescription;
 
 template<typename S, typename PFamily>
 class ParsersManager;
 class AbstractParser;
-
+class AbstractP;
 class Restarter;
 class QTime;
 class Widget :
@@ -57,6 +55,7 @@ private:
     using Header = DataHeader;
 //    using Header = EmptyHeader;
     using PFamily = AbstractParser;
+//    using PFamily = AbstractP;
     using ShPtrParser = std::shared_ptr<ParsersManager<Header, PFamily>>;
 
     std::map<TcpPort, ShPtrParser> _parsers{};

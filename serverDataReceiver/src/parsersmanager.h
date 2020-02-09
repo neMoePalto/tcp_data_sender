@@ -29,14 +29,7 @@
  * Самый частый случай.
 */
 
-//template<typename S>
-//class HeaderDescription;
-//class AbstractParser;
 class Widget;
-
-class AbstractP;
-
-
 template<typename S, typename PFamily>
 class ParsersManager :
         public std::enable_shared_from_this<ParsersManager<S, PFamily>>
@@ -57,7 +50,7 @@ public:
     void readMsgFromBeginning(std::string &&data, S* ptr = nullptr);
     std::shared_ptr<HeaderDescription<S>> headerDescription() const;
 private:
-    using ShPtrAbstractParser = std::shared_ptr<AbstractParser>;
+    using ShPtrAbstractParser = std::shared_ptr<PFamily>;
     ShPtrAbstractParser _currentParser;
     // Два эквивалентных способа объявления указателей:
     // Важно понимать, что использование в качестве типа умного указателя
@@ -67,23 +60,31 @@ private:
     // После этих объявлений проект может просто не собраться.
 //    std::shared_ptr<StructParser<SomeStruct>> _structParser;
 //    ShPtrAbstractParser _structParser;
-    std::map<std::string, ShPtrAbstractParser> _dataParsers;
+    std::map<ushort, ShPtrAbstractParser> _dataParsers;
     std::weak_ptr<Widget> _widget;
     std::shared_ptr<HeaderDescription<S>> _header;
     std::string _pieceOfData{};
-    ShPtrAbstractParser chooseParserByDataType(const std::string& type);
-
-    // Experimental:
-    std::map<ushort, std::shared_ptr<AbstractP>> _dataParsers_2;
+    ShPtrAbstractParser chooseParserByDataType(ushort type);
 };
 
+//#include <exception>
+ushort convert(const std::string& type)
+{
+    if (type.size() != sizeof(ushort))
+//        throw std::bad...
+        return 0;
+    ushort id;
+    memcpy(&id, type.data(), sizeof(id));
+    return id;
+}
 
 template<>
 void ParsersManager<DataHeader, AbstractParser>::readMsgFromBeginning(std::string &&data, DataHeader* /*ptr*/)
 {   // Проверяем сообщение на наличие префикса:
     if (_header->prefixPos(data) == 0)
     {
-        _currentParser = chooseParserByDataType(data.substr(2, 2));
+        auto type = convert(data.substr(2, 2));
+        _currentParser = chooseParserByDataType(type);
         if (_currentParser == nullptr)
         {
             qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
