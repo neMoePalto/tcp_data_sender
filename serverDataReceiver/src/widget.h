@@ -52,10 +52,10 @@ private slots:
 private:
     std::unique_ptr<Restarter> _restarter;
     using TcpPort = ushort;
-    using Header = DataHeader;
-//    using Header = EmptyHeader;
-    using PFamily = AbstractParser;
-//    using PFamily = AbstractP;
+//    using Header = DataHeader;
+    using Header = EmptyHeader;
+//    using PFamily = AbstractParser;
+    using PFamily = AbstractP;
     using ShPtrParser = std::shared_ptr<ParsersManager<Header, PFamily>>;
 
     std::map<TcpPort, ShPtrParser> _parsers{};

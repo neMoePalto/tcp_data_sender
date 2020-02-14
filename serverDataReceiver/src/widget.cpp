@@ -11,7 +11,7 @@ Widget::Widget()
 //    if (b == MySpace::a)
 //        qDebug() << "namespace works!";
 
-    quint16 defaultPort = 3600;
+    quint16 defaultPort = 9002; //= 3600;
     quint32 defaultRestartValue = 0;
     _time = std::make_unique<QTime>();
 
@@ -192,6 +192,8 @@ void Widget::processMsg(std::vector<char>& data, int size, ushort portFrom)
     printTimeAndSizeInfo(size);
     auto parser = getParser(portFrom);
     parser->parseMsg(data.data(), size);
+    // TODO: May be temp:
+    parser->printSturctsContent();
 }
 
 Widget::ShPtrParser Widget::getParser(TcpPort port)
@@ -199,8 +201,8 @@ Widget::ShPtrParser Widget::getParser(TcpPort port)
     auto it = _parsers.find(port);
     if (it == _parsers.end())
     {
-        DataHeader header{0x1002, 0xdddd, 0, 0x1003};
-//        EmptyHeader header;
+//        DataHeader header{0x1002, 0xdddd, 0, 0x1003};
+        EmptyHeader header;
         auto p = ParsersManager<Header, PFamily>::create(shared_from_this(), header);
         _parsers.insert({port, p});
         return p;

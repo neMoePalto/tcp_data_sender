@@ -49,9 +49,11 @@ public:
     void savePieceOfData(std::string&& piece);
     void readMsgFromBeginning(std::string &&data, S* ptr = nullptr);
     std::shared_ptr<HeaderDescription<S>> headerDescription() const;
+
+    void printSturctsContent();
 private:
-    using ShPtrAbstractParser = std::shared_ptr<PFamily>;
-    ShPtrAbstractParser _currentParser;
+    using ShPtrPFamily = std::shared_ptr<PFamily>;
+    ShPtrPFamily _currentParser;
     // Два эквивалентных способа объявления указателей:
     // Важно понимать, что использование в качестве типа умного указателя
     // базового класса ЛУЧШЕ, чем использование в качестве типа
@@ -60,11 +62,16 @@ private:
     // После этих объявлений проект может просто не собраться.
 //    std::shared_ptr<StructParser<SomeStruct>> _structParser;
 //    ShPtrAbstractParser _structParser;
-    std::map<ushort, ShPtrAbstractParser> _dataParsers;
+    std::map<ushort, ShPtrPFamily> _dataParsers;
     std::weak_ptr<Widget> _widget;
     std::shared_ptr<HeaderDescription<S>> _header;
     std::string _pieceOfData{};
-    ShPtrAbstractParser chooseParserByDataType(ushort type);
+    ShPtrPFamily chooseParserByDataType(ushort type);
+
+    std::string testData() {
+        std::string s;
+        return s;
+    }
 };
 
 //#include <exception>
@@ -73,9 +80,10 @@ ushort convert(const std::string& type)
     if (type.size() != sizeof(ushort))
 //        throw std::bad...
         return 0;
-    ushort id;
-    memcpy(&id, type.data(), sizeof(id));
-    return id;
+    ushort num;
+    memcpy(&num, type.data(), sizeof(num));
+    num = htons(num);
+    return num;
 }
 
 template<>

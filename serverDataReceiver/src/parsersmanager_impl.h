@@ -8,7 +8,9 @@
 #include "parsers/structparser.h"
 #include "widget.h"
 #include "somestruct.h"
-#include "all_struct_parser/unistructparser.h"
+#include "structs/kdfrom_ksa4.h"
+#include "all_struct_parser/structparserlight.h"
+
 
 template<typename S, typename PFamily>
 ParsersManager<S, PFamily>::ParsersManager(std::weak_ptr<Widget> w, S header)
@@ -42,9 +44,12 @@ void ParsersManager<DataHeader, AbstractParser>::init()
 template<>
 void ParsersManager<EmptyHeader, AbstractP>::init()
 {
-    // Experimental:
-    auto parser_01 = std::make_shared<UniStructParser<SomeStruct>>();
-    _dataParsers.insert({convert("SS"), parser_01});
+    auto pars1 = std::make_shared<StructParserLight<kd_97L6_01a>>(0x0001);
+    _dataParsers.insert({0x0001, pars1});
+    auto pars2 = std::make_shared<StructParserLight<DataOne>>(0x0101);
+    _dataParsers.insert({0x0101, pars2});
+    auto pars3 = std::make_shared<StructParserLight<DataTwo>>(0x0202);
+    _dataParsers.insert({0x0202, pars3});
 }
 
 template<typename S, typename PFamily>
@@ -77,7 +82,7 @@ void ParsersManager<S, PFamily>::savePieceOfData(std::string&& piece)
 }
 
 template<typename S, typename PFamily>
-typename ParsersManager<S, PFamily>::ShPtrAbstractParser
+typename ParsersManager<S, PFamily>::ShPtrPFamily
 ParsersManager<S, PFamily>::chooseParserByDataType(ushort type)
 {
     auto it = _dataParsers.find(type);
@@ -100,23 +105,91 @@ void ParsersManager<S, PFamily>::parseMsg(char* dataFromTcp, int size)
         qDebug() << "Bad message content or empty message. Skip it.";
         return;
     }
+
+//    std::string test = testData();
+//    if (test.size() != 0)
+//        data = std::move(test);
     readMsgFromBeginning(std::move(data)); // Решение подзадачи "Чтение сообщения"
+}
+
+template<>
+std::string ParsersManager<EmptyHeader, AbstractP>::testData()
+{
+    std::string str;
+    str.resize(300);
+    uint pos = 0;
+
+    ushort type = 0x0101;
+    memcpy(&str[pos], &type, sizeof(type));
+    uint len = 8;
+    len = htonl(len);
+    memcpy(&str[pos + 2], &len, sizeof(len));
+
+    DataOne dOne{'e', 1000};
+    memcpy(&str[pos + 6], &dOne, sizeof(dOne));
+    str.resize(6 + sizeof(dOne));
+
+    return str;
 }
 
 
 template<>
 void ParsersManager<EmptyHeader, AbstractP>::readMsgFromBeginning(std::string &&data, EmptyHeader* /*ptr*/)
 {
-    auto type = convert(data.substr(2, 2));
-    _currentParser = chooseParserByDataType(type);
-//    if (_currentParser == nullptr)
-//    {
-//        qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
-//        return;
-//    }
-//    _currentParser->fixStartTime();
-//    _currentParser->setTotalLen(data.size()); // is need?
-//    _currentParser->clearCollection(); // не совсем верно для наших условий
-//    _currentParser->readBlocks(std::move(data));
+    for (auto &parser : _dataParsers)
+        parser.second->clearCollection();
+
+    static int number = 0;
+    while (data.size() >= 6)
+    {   // Выбираем парсер:
+        auto type = convert(data.substr(0, 2));
+//        qDebug() << ++number << ". Type of struct:" << type;
+        _currentParser = chooseParserByDataType(type);
+        if (_currentParser == nullptr)
+        {
+            qDebug() << QObject::tr("Ошибка в заголовке сообщения: невозможно определить тип данных");
+            return;
+        }
+        // Извлекаем длину сообщения:
+        uint len;
+        memcpy(&len, &data[2], sizeof(len));
+        len = htonl(len);
+//        qDebug() << "Data len = " << len;
+        // Если часть рассматриваемого блока данных находится за пределами
+        // текущего сообщения:
+        if (len + 6 > data.size())
+        {
+//                qDebug() << tr("Вторая часть рассматриваемого блока данных "
+//                               "находится за пределами текущего сообщения.");
+            savePieceOfData(std::move(data));
+            return;
+        }
+        else {
+            data.erase(0, 6);
+            _currentParser->initStruct(data, len);
+        }
+    }
+    number = 0;
+
+    if (data.size() > 0)
+    {
+        qDebug() << QObject::tr("Количество оставшихся байт < 6. Сохраняем их.");
+        savePieceOfData(std::move(data));
+    }
+}
+
+template<typename S, typename PFamily>
+void ParsersManager<S, PFamily>::printSturctsContent()
+{
+    for (auto obj : _dataParsers)
+    {
+        obj.second->useData();
+//        decltype (obj<>) a;
+        // Обхожу все контейнеры, разбираю все сообщения.
+    }
+
+    // Решение - шаблонная функция (скорее всего, другого класса),
+    // специализации которой охватят все типы и смогут работать со всеми
+    // контейнерами.
 }
 

@@ -11,8 +11,8 @@ DESTDIR = bin/
 INCLUDEPATH += src/
 
 # --- Compilation flags:
-CONFIG += c++14
-QMAKE_CXXFLAGS += -std=c++14
+CONFIG += c++1z
+QMAKE_CXXFLAGS += -std=c++1z
 #CONFIG += C++14
 #QMAKE_CXXFLAGS += -std=c++14
 
@@ -22,8 +22,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-        src/all_struct_parser/abstractp.cpp \
-        src/all_struct_parser/unistructparser.cpp \
+        src/all_struct_parser/datahandler.cpp \
         src/averagetime.cpp \
         src/main.cpp \
         src/restarter.cpp \
@@ -32,7 +31,9 @@ SOURCES += \
 
 HEADERS += \
         src/all_struct_parser/abstractp.h \
-        src/all_struct_parser/unistructparser.h \
+        src/all_struct_parser/datahandler.h \
+        src/all_struct_parser/structparserlight.h \
+        src/all_struct_parser/structparserlight_impl.h \
         src/averagetime.h \
         src/dataheader.h \
         src/headerdescription.h \
@@ -48,6 +49,7 @@ HEADERS += \
         src/parsers/structparser.h \
         src/parsersmanager.h \
         src/restarter.h \
+        src/structs/kdfrom_ksa4.h \
         src/tcpserver.h \
         src/widget.h
 
