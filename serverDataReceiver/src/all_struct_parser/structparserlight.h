@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <vector>
 
+// Примеры структур:
 struct DataOne
 {
     char a;
@@ -24,13 +25,14 @@ public:
     StructParserLight(ushort num); // Если номер нужен
     void initStruct(std::string& data, uint len) override;
     void clearCollection() override;
-    void useData() override;
-    // Experimental:
+    // Простой вариант обработки объектов типа T:
+    // реализовать в каждой специализации класса этот метод.
+    // Недостаток такого подхода: и сериализация объектов,
+    // и их обработка происходят в одном классе:
+//    void useData() override;
     std::vector<T> getData();
-
 private:
     std::vector<T> _structs;
-    ushort _num;
 };
 
 #include "structparserlight_impl.h"

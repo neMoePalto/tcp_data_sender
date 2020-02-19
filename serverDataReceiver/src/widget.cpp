@@ -4,6 +4,7 @@
 #include <QHeaderView>
 #include "parsersmanager.h"
 #include "restarter.h"
+#include "all_struct_parser/datahandler.h"
 
 Widget::Widget()
 {
@@ -14,6 +15,7 @@ Widget::Widget()
     quint16 defaultPort = 9002; //= 3600;
     quint32 defaultRestartValue = 0;
     _time = std::make_unique<QTime>();
+    _dataHandler = std::make_unique<DataHandler>();
 
     // --------------------- GUI --------------------
     _green0  = new QPalette(Qt::green);
@@ -192,8 +194,10 @@ void Widget::processMsg(std::vector<char>& data, int size, ushort portFrom)
     printTimeAndSizeInfo(size);
     auto parser = getParser(portFrom);
     parser->parseMsg(data.data(), size);
-    // TODO: May be temp:
-    parser->printSturctsContent();
+//    parser->printSturctsContent();
+    _dataHandler->handle<DataOne>(parser->getMapOfParsers());
+    _dataHandler->handle<kd_fromT4_01a>(parser->getMapOfParsers());
+    _dataHandler->handle<DataTwo>(parser->getMapOfParsers());
 }
 
 Widget::ShPtrParser Widget::getParser(TcpPort port)

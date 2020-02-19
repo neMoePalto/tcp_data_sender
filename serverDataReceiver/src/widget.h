@@ -28,6 +28,7 @@ template<typename S, typename PFamily>
 class ParsersManager;
 class AbstractParser;
 class AbstractP;
+class DataHandler;
 class Restarter;
 class QTime;
 class Widget :
@@ -59,6 +60,9 @@ private:
     using ShPtrParser = std::shared_ptr<ParsersManager<Header, PFamily>>;
 
     std::map<TcpPort, ShPtrParser> _parsers{};
+
+    std::unique_ptr<DataHandler> _dataHandler;
+
     // GUI:
     QTableWidget* _tableStatistics;
     QTextEdit*  _teStatistics;

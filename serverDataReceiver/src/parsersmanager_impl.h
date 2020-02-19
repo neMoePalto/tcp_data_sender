@@ -8,7 +8,7 @@
 #include "parsers/structparser.h"
 #include "widget.h"
 #include "somestruct.h"
-#include "structs/kdfrom_ksa4.h"
+#include "structs/kdfrom_T4.h"
 #include "all_struct_parser/structparserlight.h"
 
 
@@ -44,12 +44,12 @@ void ParsersManager<DataHeader, AbstractParser>::init()
 template<>
 void ParsersManager<EmptyHeader, AbstractP>::init()
 {
-    auto pars1 = std::make_shared<StructParserLight<kd_97L6_01a>>(0x0001);
-    _dataParsers.insert({0x0001, pars1});
+    auto pars1 = std::make_shared<StructParserLight<kd_fromT4_01a>>(0x0001);
+    _dataParsers.insert({pars1->getNum(), pars1});
     auto pars2 = std::make_shared<StructParserLight<DataOne>>(0x0101);
-    _dataParsers.insert({0x0101, pars2});
+    _dataParsers.insert({pars2->getNum(), pars2});
     auto pars3 = std::make_shared<StructParserLight<DataTwo>>(0x0202);
-    _dataParsers.insert({0x0202, pars3});
+    _dataParsers.insert({pars3->getNum(), pars3});
 }
 
 template<typename S, typename PFamily>
@@ -106,11 +106,28 @@ void ParsersManager<S, PFamily>::parseMsg(char* dataFromTcp, int size)
         return;
     }
 
-//    std::string test = testData();
-//    if (test.size() != 0)
-//        data = std::move(test);
+    // Temp: временный отладочный код, для проверки разбора struct DataOne:
+    std::string td = testData();
+    if (td.size() != 0)
+        data = std::move(td);
     readMsgFromBeginning(std::move(data)); // Решение подзадачи "Чтение сообщения"
 }
+
+
+template<>
+const std::map<ushort, std::shared_ptr<AbstractP>>*
+ParsersManager<EmptyHeader, AbstractP>::getMapOfParsers() const
+{
+    return &_dataParsers;
+}
+
+template<>
+const std::map<ushort, std::shared_ptr<AbstractParser>>*
+ParsersManager<DataHeader, AbstractParser>::getMapOfParsers() const
+{
+    return nullptr;
+}
+
 
 template<>
 std::string ParsersManager<EmptyHeader, AbstractP>::testData()
@@ -121,7 +138,7 @@ std::string ParsersManager<EmptyHeader, AbstractP>::testData()
 
     ushort type = 0x0101;
     memcpy(&str[pos], &type, sizeof(type));
-    uint len = 8;
+    uint len = sizeof(DataOne);
     len = htonl(len);
     memcpy(&str[pos + 2], &len, sizeof(len));
 
@@ -135,15 +152,13 @@ std::string ParsersManager<EmptyHeader, AbstractP>::testData()
 
 template<>
 void ParsersManager<EmptyHeader, AbstractP>::readMsgFromBeginning(std::string &&data, EmptyHeader* /*ptr*/)
-{
+{   // Очищаем контейнеры, содержащие результаты прошлого разбора:
     for (auto &parser : _dataParsers)
         parser.second->clearCollection();
 
-    static int number = 0;
     while (data.size() >= 6)
     {   // Выбираем парсер:
         auto type = convert(data.substr(0, 2));
-//        qDebug() << ++number << ". Type of struct:" << type;
         _currentParser = chooseParserByDataType(type);
         if (_currentParser == nullptr)
         {
@@ -169,8 +184,6 @@ void ParsersManager<EmptyHeader, AbstractP>::readMsgFromBeginning(std::string &&
             _currentParser->initStruct(data, len);
         }
     }
-    number = 0;
-
     if (data.size() > 0)
     {
         qDebug() << QObject::tr("Количество оставшихся байт < 6. Сохраняем их.");
@@ -182,14 +195,6 @@ template<typename S, typename PFamily>
 void ParsersManager<S, PFamily>::printSturctsContent()
 {
     for (auto obj : _dataParsers)
-    {
         obj.second->useData();
-//        decltype (obj<>) a;
-        // Обхожу все контейнеры, разбираю все сообщения.
-    }
-
-    // Решение - шаблонная функция (скорее всего, другого класса),
-    // специализации которой охватят все типы и смогут работать со всеми
-    // контейнерами.
 }
 

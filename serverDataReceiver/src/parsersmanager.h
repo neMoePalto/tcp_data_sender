@@ -8,7 +8,7 @@
 #include "parsers/abstractparser.h"
 /*
  * Для определенности введем терминологию:
- * - сообщение - еденица информационного обмена, существующая на уровне приложения.
+ * - сообщение - единица информационного обмена, существующая на уровне приложения.
  * Для реализации возможности выделения (и последующего разбора) сообщения
  * в состав сообщения добавляются префикс, длина информационной части и постфикс.
  * - tcp-дейтаграмма - "кусок" последовательности байт, полученный из tcp-потока.
@@ -36,12 +36,12 @@ class ParsersManager :
 {
 private:
     void init();
-    explicit ParsersManager(std::weak_ptr<Widget> w
-                            , /*std::shared_ptr<S>*/ S header);
+    explicit ParsersManager(std::weak_ptr<Widget> w, S header);
 public:
     static std::shared_ptr<ParsersManager>
-    create(std::weak_ptr<Widget> w, /*std::shared_ptr<S>*/ S header);
+    create(std::weak_ptr<Widget> w, S header);
 
+    using ShPtrPFamily = std::shared_ptr<PFamily>;
     ParsersManager(const ParsersManager& other) = delete;
     ParsersManager& operator=(const ParsersManager& other) = delete;
     ~ParsersManager();
@@ -49,10 +49,9 @@ public:
     void savePieceOfData(std::string&& piece);
     void readMsgFromBeginning(std::string &&data, S* ptr = nullptr);
     std::shared_ptr<HeaderDescription<S>> headerDescription() const;
-
-    void printSturctsContent();
+    void printSturctsContent(); // Unused now
+    const std::map<ushort, ShPtrPFamily>* getMapOfParsers() const;
 private:
-    using ShPtrPFamily = std::shared_ptr<PFamily>;
     ShPtrPFamily _currentParser;
     // Два эквивалентных способа объявления указателей:
     // Важно понимать, что использование в качестве типа умного указателя

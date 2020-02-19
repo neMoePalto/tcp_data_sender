@@ -3,12 +3,12 @@
 #endif
 
 #include "structparserlight.h"
-#include "structs/kdfrom_ksa4.h"
+#include "structs/kdfrom_T4.h"
 #include <QDebug>
 
 template<typename T>
 StructParserLight<T>::StructParserLight(ushort num)
-    : _num(num)
+    : AbstractP(num)
 {
 }
 
@@ -20,6 +20,8 @@ void StructParserLight<T>::initStruct(std::string& data, uint len)
     data.erase(0, len);
     _structs.push_back(myStruct);
     qDebug() << "sizeof(T)=" << sizeof (T);
+
+
 }
 
 template<typename T>
@@ -28,31 +30,31 @@ void StructParserLight<T>::clearCollection()
     _structs.clear();
 }
 
-template<typename T>
-void StructParserLight<T>::useData()
-{
-    _structs.clear();
-}
+//template<typename T>
+//void StructParserLight<T>::useData()
+//{
+//    _structs.clear();
+//}
 
-template<>
-void StructParserLight<kd_97L6_01a>::useData()
-{
-    qDebug() << "\n";
-    for (auto &obj : _structs)
-    {
-        // Обработка структуры:
-        qDebug() << "Номер цели в сист. КСА:" << obj.ntr << "\n"
-                 << "Широта:" << double(obj.bl) << ", Долгота:" << double(obj.dl) << "\n"
-                 << "Высота:" << obj.h << ", Скорость гориз.:" << obj.vp << ", Пр. бедствия:" << obj.bd;
-    }
-    _structs.clear();
-}
+//template<>
+//void StructParserLight<kd_fromT4_01a>::useData()
+//{
+//    qDebug() << "\n";
+//    for (auto &obj : _structs)
+//    {
+//        // Обработка структуры:
+//        qDebug() << "Номер цели в сист. КСА:" << obj.ntr << "\n"
+//                 << "Широта:" << double(obj.bl) << ", Долгота:" << double(obj.dl) << "\n"
+//                 << "Высота:" << obj.h << ", Скорость гориз.:" << obj.vp << ", Пр. бедствия:" << obj.bd;
+//    }
+//    _structs.clear();
+//}
 
-template<>
-void StructParserLight<DataOne>::useData()
-{
-    qDebug() << "Test impl for struct DataOne";
-}
+//template<>
+//void StructParserLight<DataOne>::useData()
+//{
+//    qDebug() << "Test impl for struct DataOne";
+//}
 
 
 template<typename T>

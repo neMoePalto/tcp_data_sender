@@ -22,7 +22,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-        src/all_struct_parser/datahandler.cpp \
         src/averagetime.cpp \
         src/main.cpp \
         src/restarter.cpp \
@@ -32,6 +31,7 @@ SOURCES += \
 HEADERS += \
         src/all_struct_parser/abstractp.h \
         src/all_struct_parser/datahandler.h \
+        src/all_struct_parser/datahandler_imlp.h \
         src/all_struct_parser/structparserlight.h \
         src/all_struct_parser/structparserlight_impl.h \
         src/averagetime.h \
@@ -49,7 +49,7 @@ HEADERS += \
         src/parsers/structparser.h \
         src/parsersmanager.h \
         src/restarter.h \
-        src/structs/kdfrom_ksa4.h \
+        src/structs/kdfrom_T4.h \
         src/tcpserver.h \
         src/widget.h
 
