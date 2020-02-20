@@ -87,7 +87,6 @@ void TcpServer::slotRead()
     in.setVersion(QDataStream::Qt_5_3);
     // Явно уменьшаю len до размера int. Проблем не возникает:
     int len = static_cast<int>(cliSocket->bytesAvailable());
-    // TODO: Заменить buff на std::string максимального размера (+-):
     in.readRawData(_buff.data(), len);
     emit haveData(_buff, len, cliSocket->peerPort());
 }

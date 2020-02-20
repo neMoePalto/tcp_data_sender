@@ -1,5 +1,6 @@
 #ifndef STRUCTPARSERLIGHT_H
 #error "Do not include this file directly! Use structparser.h!"
+//static_assert (0, "Do not include this file directly! Use structparser.h!");
 #endif
 
 #include "structparserlight.h"
@@ -20,8 +21,6 @@ void StructParserLight<T>::initStruct(std::string& data, uint len)
     data.erase(0, len);
     _structs.push_back(myStruct);
     qDebug() << "sizeof(T)=" << sizeof (T);
-
-
 }
 
 template<typename T>
