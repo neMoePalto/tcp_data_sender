@@ -2,7 +2,9 @@
 #include <QHBoxLayout>
 #include <QTime>
 #include <QHeaderView>
-#include "dataheader.h"
+#include "parsersmanager.h"
+#include "restarter.h"
+#include "all_struct_parser/datahandler.h"
 
 Widget::Widget()
 {
@@ -10,9 +12,10 @@ Widget::Widget()
 //    if (b == MySpace::a)
 //        qDebug() << "namespace works!";
 
-    quint16 defaultPort = 3600;
+    quint16 defaultPort = 9002; //= 3600;
     quint32 defaultRestartValue = 0;
     _time = std::make_unique<QTime>();
+    _dataHandler = std::make_unique<DataHandler>();
 
     // --------------------- GUI --------------------
     _green0  = new QPalette(Qt::green);
@@ -191,6 +194,10 @@ void Widget::processMsg(std::vector<char>& data, int size, ushort portFrom)
     printTimeAndSizeInfo(size);
     auto parser = getParser(portFrom);
     parser->parseMsg(data.data(), size);
+//    parser->printSturctsContent();
+    _dataHandler->handle<DataOne>(parser->getMapOfParsers());
+    _dataHandler->handle<kd_fromT4_01a>(parser->getMapOfParsers());
+    _dataHandler->handle<DataTwo>(parser->getMapOfParsers());
 }
 
 Widget::ShPtrParser Widget::getParser(TcpPort port)
@@ -198,9 +205,9 @@ Widget::ShPtrParser Widget::getParser(TcpPort port)
     auto it = _parsers.find(port);
     if (it == _parsers.end())
     {
-        DataHeader header{0x1002, 0xdddd, 0, 0x1003};
-        auto hd = std::make_shared<HeaderDescription<DataHeader>>(header);
-        auto p = ParsersManager<HeaderDescription<DataHeader>>::create(shared_from_this(), hd);
+//        DataHeader header{0x1002, 0xdddd, 0, 0x1003};
+        EmptyHeader header;
+        auto p = ParsersManager<Header, PFamily>::create(shared_from_this(), header);
         _parsers.insert({port, p});
         return p;
     }

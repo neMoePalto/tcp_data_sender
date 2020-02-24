@@ -1,21 +1,18 @@
 #ifndef JSONPARSER_H
 #define JSONPARSER_H
 #include "abstractparser.h"
-#include <QDebug>
 #include <vector>
 #include <boost/property_tree/ptree.hpp>
 using namespace boost::property_tree;
 
-template<typename S>
-class JsonParser : public AbstractParser<S>
+class JsonParser : public AbstractParser
 {
 public:
     // Подход, позволяющий не объявлять и не определять "пустой" конструктор
     // в производном классе. Идеально для случая, когда задача такого ctor'a
     // сводится к транизиту параметоров в ctor базового класса:
 //    using AbstractParser::AbstractParser;
-    JsonParser(std::weak_ptr<ParsersManager<S>> p
-               , std::shared_ptr<S> header);
+    JsonParser(std::weak_ptr<ParsersManager<DataHeader, AbstractParser>> pm);
     ~JsonParser() override;
     void clearCollection() override;
     void createObject(std::string &data, size_t posEnd) override;

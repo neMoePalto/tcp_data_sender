@@ -11,4 +11,8 @@ struct DataHeader
     ushort  postfix;
 };
 
+struct EmptyHeader
+{
+};
+
 #endif // DATAHEADER_H

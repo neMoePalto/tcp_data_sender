@@ -8,10 +8,9 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QTableWidget>
-#include "restarter.h"
-#include "parsersmanager.h"
-#include "parsers/abstractparser.h"
-#include "headerdescription.h"
+#include <memory>
+#include "parsers/abstractparsersignalsslots.h"
+#include "dataheader.h"
 
 namespace MySpace {
 const int a = 4;
@@ -24,8 +23,14 @@ enum class ClearLabelsPolicy
     ExceptFirst
 };
 
+
+template<typename S, typename PFamily>
+class ParsersManager;
+class AbstractParser;
+class AbstractP;
+class DataHandler;
+class Restarter;
 class QTime;
-class DataHeader;
 class Widget :
         public QWidget,
         public std::enable_shared_from_this<Widget>
@@ -48,9 +53,16 @@ private slots:
 private:
     std::unique_ptr<Restarter> _restarter;
     using TcpPort = ushort;
-    using ShPtrParser
-    = std::shared_ptr<ParsersManager<HeaderDescription<DataHeader>>>;
+//    using Header = DataHeader;
+    using Header = EmptyHeader;
+//    using PFamily = AbstractParser;
+    using PFamily = AbstractP;
+    using ShPtrParser = std::shared_ptr<ParsersManager<Header, PFamily>>;
+
     std::map<TcpPort, ShPtrParser> _parsers{};
+
+    std::unique_ptr<DataHandler> _dataHandler;
+
     // GUI:
     QTableWidget* _tableStatistics;
     QTextEdit*  _teStatistics;

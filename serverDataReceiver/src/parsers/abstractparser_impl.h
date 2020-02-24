@@ -4,18 +4,20 @@
 
 #include "abstractparser.h"
 
-template<typename S>
-AbstractParser<S>::AbstractParser(std::weak_ptr<ParsersManager<S>> p
-                                  , std::shared_ptr<S> header)
-    : _parsersManager(p)
-    , _header(header)
+AbstractParser::AbstractParser(std::weak_ptr<ParsersManager<DataHeader, AbstractParser>> pm)
+    : _parsersManager(pm)
 {
     _oneObjectSerializingTimer = std::make_shared<AverageTime>();
     _wholeMessageParsingTimer  = std::make_shared<AverageTime>();
 }
 
-template<typename S>
-void AbstractParser<S>::setTotalLen(ulong len)
+void AbstractParser::setTotalLen(ulong len)
 {
     _totalLen = len;
 }
+
+void AbstractParser::fixStartTime()
+{
+    _wholeMessageParsingTimer->fixStartTime();
+}
+
