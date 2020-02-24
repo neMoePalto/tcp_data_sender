@@ -3,12 +3,12 @@
 #include "abstractparser.h"
 #include <vector>
 
-template<typename T, typename S>
-class StructParser : public AbstractParser<S>
+template<typename T>
+class StructParser : public AbstractParser
 {
 public:
 //    using AbstractParser<S>::AbstractParser;
-    StructParser(std::weak_ptr<ParsersManager<S>> pm);
+    StructParser(std::weak_ptr<ParsersManager<DataHeader, AbstractParser>> pm);
     ~StructParser() override;
     void clearCollection() override;
     void createObject(std::string &data, size_t pos) override;

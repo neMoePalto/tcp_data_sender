@@ -35,7 +35,7 @@ private slots:
     void slotRead();
     void deleteSocket();
 private:
-    QTcpServer*       _server;
+    QTcpServer* _server;
     std::vector<char> _buff;
     const ushort _connectionLimit;
     bool isConnLimitOver() const;

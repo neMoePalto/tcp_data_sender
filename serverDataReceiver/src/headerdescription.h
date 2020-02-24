@@ -2,8 +2,6 @@
 #define HEADERDESCRIPTION_H
 #include <string.h>
 #include <string>
-#include <algorithm>
-
 struct DataHeader;
 struct EmptyHeader;
 
@@ -16,17 +14,7 @@ public:
     HeaderDescription(EmptyHeader header);
     ~HeaderDescription();
 
-    template<typename = std::enable_if_t<std::is_same<S, DataHeader>::value>>
-    ulong getLen(std::string &currentDataBlock)
-    {
-        ulong len{};
-        uint pos = 4;
-        std::reverse(currentDataBlock.begin() + pos,
-                     currentDataBlock.begin() + pos + 8);
-        memcpy(&len, &currentDataBlock[pos], 8);
-        return len;
-    }
-
+    ulong getLen(std::string &currentDataBlock);
     size_t prefixPos(const std::string& currentDataBlock) const;
     std::string postfixStr() const;
     uint emptyMsgLen() const
@@ -40,8 +28,8 @@ private:
     std::string _prefixStr{};
     std::string _postfixStr{};
 };
-using HdrDescrDH = HeaderDescription<DataHeader>;
-using HdrDescrEmpH = HeaderDescription<EmptyHeader>;
+//using HdrDescrDH = HeaderDescription<DataHeader>;
+//using HdrDescrEmpH = HeaderDescription<EmptyHeader>;
 
 
 #include "headerdescription_impl.h"
