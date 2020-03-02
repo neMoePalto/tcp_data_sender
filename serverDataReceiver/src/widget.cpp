@@ -3,7 +3,7 @@
 #include <QTime>
 #include <QHeaderView>
 #include "parsersmanager.h"
-#include "restarter.h"
+#include "tcpserver.h"
 #include "all_struct_parser/datahandler.h"
 
 Widget::Widget()
@@ -61,13 +61,9 @@ Widget::Widget()
     gridl->addWidget(lbLeft1, 1, 0,   1, 1);
     gridl->addLayout(hLay,    1, 2,   1, 1, Qt::AlignLeft);
 
-    QLabel *lbLeft2 = new QLabel(tr("Интервал авторестарта, от 4 сек \n(0 - авторестар отключен):"));
+    QLabel *lbLeft2 = new QLabel(/*tr("Интервал авторестарта, от 4 сек \n(0 - авторестар отключен):")*/);
     _step.setNum(defaultRestartValue);
-    _leRestartValue = new QLineEdit();
-    _leRestartValue->setText(_step);
-    _leRestartValue->setFixedWidth(70);
     gridl->addWidget(lbLeft2,         2, 0,   1, 1);
-    gridl->addWidget(_leRestartValue, 2, 2,   1, 1);
     _pbClearOutput = new QPushButton(tr("Очистить вывод"));
     _pbClearOutput->setFixedSize(150, 70);
     gridl->addWidget(_pbClearOutput, 3, 0,   2, 2);
@@ -117,24 +113,39 @@ Widget::Widget()
     setMinimumHeight(800);
     connect(_pbStart, SIGNAL(clicked()),            this, SLOT(slotStartServer()) );
     connect(_pbClearOutput, SIGNAL(clicked()),      this, SLOT(clearOutput()) );
+
+    // Create TcpServer:
+    _server = std::make_unique<TcpServer>(3);
+    // Возможность обработки ситуации, когда порт уже занят:
+    //    connect(_server.get(), &TcpServer::portIsBusy,
+    //            this, &Widget::restartServer);
+    connect(_server.get(), &TcpServer::haveData,
+            this, &Widget::processMsg);
+
+    connect(_server.get(), &TcpServer::listenPort,
+            this, &Widget::showServPort);
+    connect(_server.get(), &TcpServer::clientConnected,
+            this, &Widget::slotCliConnected);
+    connect(_server.get(), &TcpServer::clientDisconnected,
+            this, &Widget::slotCliDisconnected);
+    //        connect(_server.get(), &TcpServer::portIsBusy,
+    //                this, &Widget::close);
+
+    // Активируем сервер:
+    _pbStart->click();
 }
 
 Widget::~Widget()
 {
+    _server->disconnect();
     qDebug() << "Widget::~dtor() called";
 }
 
 void Widget::showEvent(QShowEvent* /*event*/)
 {
     // Т.к. метод shared_from_this() не может быть использован в конструкторе
-    // класса Widget, конструировать объект класса Restarter приходится
+    // класса Widget, конструировать объекты некоторых классов приходится
     // в данном методе.
-    if (_restarter == nullptr)
-    {
-        _restarter = std::make_unique<Restarter>(shared_from_this());
-        // Активируем сервер:
-        _pbStart->click();
-    }
 //    qDebug() << "Widget::showEvent() called!";
 }
 
@@ -148,7 +159,7 @@ void Widget::printJsonObjAmount(ulong size)
     _teStatistics->setTextColor(Qt::black);
 }
 
-void Widget::printTimeAndSizeInfo(int msgSize)
+void Widget::printTimeAndSizeInfo(ulong msgSize)
 {
     QString time = _time->currentTime().toString("hh:mm:ss.zzz");
     QString timeAndSize = time + tr("  принято ") + QString::number(msgSize) + tr(" байт");
@@ -189,11 +200,11 @@ void Widget::addDataItemToRow(int column, const QVariant& data)
 }
 
 
-void Widget::processMsg(std::vector<char>& data, int size, ushort portFrom)
+void Widget::processMsg(std::vector<char>& data, ushort portFrom)
 {
-    printTimeAndSizeInfo(size);
+    printTimeAndSizeInfo(data.size());
     auto parser = getParser(portFrom);
-    parser->parseMsg(data.data(), size);
+    parser->parseMsg(std::move(data));
 //    parser->printSturctsContent();
     _dataHandler->handle<DataOne>(parser->getMapOfParsers());
     _dataHandler->handle<kd_fromT4_01a>(parser->getMapOfParsers());
@@ -205,8 +216,8 @@ Widget::ShPtrParser Widget::getParser(TcpPort port)
     auto it = _parsers.find(port);
     if (it == _parsers.end())
     {
-//        DataHeader header{0x1002, 0xdddd, 0, 0x1003};
-        EmptyHeader header;
+        DataHeader header{0x1002, 0xdddd, 0, 0x1003};
+//        EmptyHeader header;
         auto p = ParsersManager<Header, PFamily>::create(shared_from_this(), header);
         _parsers.insert({port, p});
         return p;
@@ -227,52 +238,24 @@ void Widget::slotStartServer()
         return;
     }
 
-    st = _leRestartValue->text();
-    quint32 restartValue = st.toUInt();
-    if (restartValue > 0 && restartValue < 4) // Искусственно исключаем слишком маленькие интервалы
-    {
-        qDebug() << "Widget::slotStartServer() error! Unkorrect restartValue!";
-        return;
-    }
-
-    TcpServerMode mode;
-    QPalette* currPalette{nullptr};
-    if (restartValue == 0)
-    {
-        mode = TcpServerMode::ChangeBusyPort;
-        st = tr("Сервер работает в режиме\n\"Один порт из множества\"");
-        currPalette = _yellow0;
-    }
-    else
-    {
-        mode = TcpServerMode::RandPortRestart;
-        st = tr("Сервер работает в режиме\n\"Авторестарт со сменой порта\"");
-        currPalette = _red1;
-    }
-
-    _restarter->restart(port, mode, restartValue);
+    _server->restart(port);
     disconnect(_pbStart, SIGNAL(clicked()),     this, SLOT(slotStartServer()) );
-       connect(_pbStart, SIGNAL(clicked()),     this, SLOT(slotStopServer()) );
+    connect(_pbStart, SIGNAL(clicked()),     this, SLOT(slotStopServer()) );
+
+    st = tr("Сервер работает в режиме\n\"Один порт из множества\"");
     _pbStart->setText(st);
-    _pbStart->setPalette(*currPalette);
+    _pbStart->setPalette(*_yellow0);
 }
 
 void Widget::slotStopServer()
 {
-    _restarter->close();
+    _server->close();
     disconnect(_pbStart, SIGNAL(clicked()),     this, SLOT(slotStopServer()) );
        connect(_pbStart, SIGNAL(clicked()),     this, SLOT(slotStartServer()) );
     _pbStart->setText(tr("Активировать tcp-сервер"));
     _pbStart->setPalette(*_green1);
     _pbConnectionStatus->setPalette(*_red0);
 }
-
-//void Widget::updateGui(...)
-//{
-//    lb_receive->setText(QString::number(chRcv_));
-//    lb_send->setText(QString::number(chSnd_));
-//    lb_ntpd->setText(QString::number(tpd));
-//}
 
 void Widget::showServPort(quint16 port)
 {

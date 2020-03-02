@@ -14,7 +14,6 @@
 
 template<typename S, typename PFamily>
 ParsersManager<S, PFamily>::ParsersManager(std::weak_ptr<Widget> w, S header)
-
     : _widget(w)
     , _header(std::make_shared<HeaderDescription<S>>(header))
 {
@@ -94,13 +93,13 @@ ParsersManager<S, PFamily>::chooseParserByDataType(ushort type)
 }
 
 template<typename S, typename PFamily>
-void ParsersManager<S, PFamily>::parseMsg(char* dataFromTcp, int size)
+void ParsersManager<S, PFamily>::parseMsg(std::vector<char> &&data)
 {
-    std::string data(dataFromTcp, static_cast<size_t>(size));
+    std::string dataStr(data.data(), data.size());
     // Добавляем кусок сообщения, оставшийся после разбора предыдущего сообщения:
-    data.insert(0, _pieceOfData);
+    dataStr.insert(0, _pieceOfData);
     _pieceOfData.clear();
-    if (data.size() <= _header->emptyMsgLen())
+    if (dataStr.size() <= _header->emptyMsgLen())
     {   // Отбрасываем пустые и слишком короткие сообщения:
         qDebug() << "Bad message content or empty message. Skip it.";
         return;
@@ -109,8 +108,8 @@ void ParsersManager<S, PFamily>::parseMsg(char* dataFromTcp, int size)
     // Temp: временный отладочный код, для проверки разбора struct DataOne:
     std::string td = testData();
     if (td.size() != 0)
-        data = std::move(td);
-    readMsgFromBeginning(std::move(data)); // Решение подзадачи "Чтение сообщения"
+        dataStr = std::move(td);
+    readMsgFromBeginning(std::move(dataStr)); // Решение подзадачи "Чтение сообщения"
 }
 
 

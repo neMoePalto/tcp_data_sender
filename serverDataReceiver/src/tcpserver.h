@@ -1,14 +1,12 @@
 #ifndef TCP_SERVER_H
 #define TCP_SERVER_H
 #include <QTcpSocket>
-
+#include <memory>
 // Класс реализует tcp-сервер. Класс используется следующим образом:
-// сначала вызывается конструктор, затем - метод restart(). Периодический
-// вызов метода restart() осуществляет рестарт сервера с новыми параметрами.
-
-// TODO: Дополнить позже:
+// сначала вызывается конструктор, затем - метод restart() или метод start().
+// Периодический вызов метода restart() может быть использован для
+// перезапуска сервера с новыми параметрами.
 // Класс поддерживает управление несколькими входящими соединениями.
-// Входящий трафик распределяется между объектами-получателями.
 
 class QTcpServer;
 class TcpServer : public QObject
@@ -24,8 +22,7 @@ public:
 signals:
     void clientConnected(ushort remotePort);
     void clientDisconnected(ushort remotePort);
-//    void haveData(char* buff, int len, ushort remotePort);
-    void haveData(std::vector<char>& data, int len, ushort portFrom);
+    void haveData(std::vector<char>& data, ushort portFrom);
     void portIsBusy();
     void listenPort(ushort localPort);
 private slots:
@@ -35,7 +32,7 @@ private slots:
     void slotRead();
     void deleteSocket();
 private:
-    QTcpServer* _server;
+    std::unique_ptr<QTcpServer> _server;
     std::vector<char> _buff;
     const ushort _connectionLimit;
     bool isConnLimitOver() const;
