@@ -45,7 +45,7 @@ Widget::Widget()
     gridl->addWidget(_lbCurrentPort,   0, 2,   1, 1);
 
     QString _step;
-    QLabel* lbLeft1 = new QLabel(tr("Номер порта tcp-сервера (авторестарт сервера \nбудет проходить на интервале [порт + 23]):"));
+    QLabel* lbLeft1 = new QLabel(tr("Номер порта tcp-сервера:"));
     _step.setNum(defaultPort);
     _lePort = new QLineEdit();
     _lePort->setText(_step);
@@ -116,23 +116,16 @@ Widget::Widget()
 
     // Create TcpServer:
     _server = std::make_unique<TcpServer>(3);
-    // Возможность обработки ситуации, когда порт уже занят:
-    //    connect(_server.get(), &TcpServer::portIsBusy,
-    //            this, &Widget::restartServer);
     connect(_server.get(), &TcpServer::haveData,
             this, &Widget::processMsg);
-
     connect(_server.get(), &TcpServer::listenPort,
             this, &Widget::showServPort);
     connect(_server.get(), &TcpServer::clientConnected,
             this, &Widget::slotCliConnected);
     connect(_server.get(), &TcpServer::clientDisconnected,
             this, &Widget::slotCliDisconnected);
-    //        connect(_server.get(), &TcpServer::portIsBusy,
-    //                this, &Widget::close);
-
-    // Активируем сервер:
-    _pbStart->click();
+    connect(_server.get(), &TcpServer::portIsBusy,
+            this, &Widget::slotPortIsBusy);
 }
 
 Widget::~Widget()
@@ -242,7 +235,7 @@ void Widget::slotStartServer()
     disconnect(_pbStart, SIGNAL(clicked()),     this, SLOT(slotStartServer()) );
     connect(_pbStart, SIGNAL(clicked()),     this, SLOT(slotStopServer()) );
 
-    st = tr("Сервер работает в режиме\n\"Один порт из множества\"");
+    st = tr("Tcp-сервер ожидает \nвходящие соединения");
     _pbStart->setText(st);
     _pbStart->setPalette(*_yellow0);
 }
@@ -283,6 +276,12 @@ void Widget::slotCliDisconnected(quint16 port)
     _teErrors->append(s);
     // Удаляем связанный экземпляр парсера:
     _parsers.erase(port);
+}
+
+void Widget::slotPortIsBusy()
+{
+    _server->close();
+    emit quitFromApp();
 }
 
 void Widget::clearLabels(ClearLabelsPolicy fl)

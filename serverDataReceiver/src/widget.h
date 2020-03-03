@@ -40,14 +40,17 @@ public:
     Widget();
     ~Widget() override;
     using ptrFnProcessing = void(Widget::*)(QByteArray ba);
+signals:
+    void quitFromApp();
 public slots:
     void processMsg(std::vector<char> &data, ushort portFrom);
+    void slotStartServer();
     void slotCliConnected(quint16 port);
     void slotCliDisconnected(quint16 port);
+    void slotPortIsBusy();
     void showServPort(quint16 port);
     void printParsingResults(MessageParsingResult info);
 private slots:
-    void slotStartServer();
     void slotStopServer();
     void clearOutput();
 private:
