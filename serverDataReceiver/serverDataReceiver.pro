@@ -24,7 +24,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         src/averagetime.cpp \
         src/main.cpp \
-        src/restarter.cpp \
         src/tcpserver.cpp \
         src/widget.cpp
 
@@ -48,7 +47,6 @@ HEADERS += \
         src/parsers/jsonparser.h \
         src/parsers/structparser.h \
         src/parsersmanager.h \
-        src/restarter.h \
         src/structs/kdfrom_T4.h \
         src/tcpserver.h \
         src/widget.h

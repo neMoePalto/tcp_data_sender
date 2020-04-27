@@ -29,7 +29,7 @@ class ParsersManager;
 class AbstractParser;
 class AbstractP;
 class DataHandler;
-class Restarter;
+class TcpServer;
 class QTime;
 class Widget :
         public QWidget,
@@ -51,7 +51,9 @@ private slots:
     void slotStopServer();
     void clearOutput();
 private:
-    std::unique_ptr<Restarter> _restarter;
+//    std::unique_ptr<Restarter> _restarter;
+    std::unique_ptr<TcpServer> _server;
+
     using TcpPort = ushort;
 //    using Header = DataHeader;
     using Header = EmptyHeader;
@@ -69,7 +71,6 @@ private:
     QTextEdit*  _teErrors;
     std::unique_ptr<QTime> _time;
     QLineEdit*  _lePort;
-    QLineEdit*  _leRestartValue;
     QLabel*     _lbCurrentPort;
     QPushButton* _pbStart;
     QPushButton* _pbConnectionStatus;
