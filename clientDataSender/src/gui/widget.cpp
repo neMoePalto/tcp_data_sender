@@ -1,8 +1,6 @@
 #include <QGridLayout>
 #include <QPushButton>
 #include <QTextEdit>
-#include <QDialog>
-#include <QSettings>
 #include <QLabel>
 #include <QString>
 #include <QDebug>
@@ -12,6 +10,7 @@
 #include <string>
 #include <netinet/in.h>
 #include "widget.h"
+#include "gui/netsettingsdialog.h"
 #include "tcpsmartclient.h"
 #include "averagetime.h"
 #include "somestruct.h"
@@ -23,7 +22,7 @@ Widget::Widget()
     _notoSans11 = new QFont("Noto Sans", 11, QFont::Normal);
     this->setFont(*_notoSans11);
     // Графические объекты:
-    this->initSettingsWidget();
+    _settingsWidget = new NetSettingsDialog(this);
     QGridLayout* grid = new QGridLayout(this);
     setLayout(grid);
     setFixedWidth(880);
@@ -64,16 +63,12 @@ Widget::Widget()
 //    QObject::connect(_smartClient.get(), SIGNAL(connected()),     this, SLOT(slotConnected()) );
     QObject::connect(_pbOpenSettingsWidget, SIGNAL(clicked()), this, SLOT(slotOpenSettingsWidget()) );
 
-    QObject::connect(_pbApplySettings, SIGNAL(clicked()), this, SLOT(slotClientRestart()) );
 }
 
 // TODO: Memory leak for some layouts, проверить на walgrind:
 Widget::~Widget()
 {
-    _settings->setValue("IP", _leIp->text());
-    _settings->setValue("port", _lePort->text());
-    delete _settings;
-
+//    delete _settingsWidget;
     delete _pbSendJson;
     delete _leObjAmount;
     delete _teSendingResult;
@@ -94,57 +89,20 @@ void Widget::initHeaderParts()
     _types.insert({DataType::Struct, TypeInfo{"SS", tr("структуры")}} );
 }
 
-void Widget::usePreviousSettings(QLineEdit *leForIp, QLineEdit *leForPort)
-{
-    _settings = new QSettings("./settings.ini", QSettings::IniFormat);
-    QString ip = _settings->value("IP").toString();
-    leForIp->setText(ip);
-    QString port = _settings->value("port").toString();
-    leForPort->setText(port);
-}
-
-
-void Widget::initSettingsWidget()
-{
-    _wgtNetSettings  = new QDialog(this);
-    _wgtNetSettings->setModal(true);
-    _wgtNetSettings->setMaximumSize(275, 160);
-    _wgtNetSettings->setFont(*_notoSans11);
-    _grid2 = new QGridLayout();
-    _wgtNetSettings->setLayout(_grid2);
-    _lb2 = new QLabel(tr("Параметры сервера:"));
-    _lbIp = new QLabel(tr("IP-адрес:"));
-    _lbPort = new QLabel(tr("Tcp-порт:"));
-    _leIp = new QLineEdit();
-    _leIp->setFixedWidth(180);
-    _lePort = new QLineEdit();
-    _lePort->setFixedWidth(180);
-    usePreviousSettings(_leIp, _lePort);
-
-    _pbApplySettings = new QPushButton(tr("Применить настройки"));
-    _grid2->addWidget(_lb2,     0, 0,   1, 2);
-    _grid2->addWidget(_lbIp,    1, 0,   1, 1);
-    _grid2->addWidget(_leIp,    1, 1,   1, 1);
-    _grid2->addWidget(_lbPort,  2, 0,   1, 1);
-    _grid2->addWidget(_lePort,  2, 1,   1, 1);
-    _grid2->addWidget(_pbApplySettings, 3, 1,   1, 1);
-}
-
-
 void Widget::slotOpenSettingsWidget()
 {
-    _wgtNetSettings->show();
-    qDebug() << _wgtNetSettings->size();
+    _settingsWidget->show();
+    qDebug() << _settingsWidget->size();
 }
 
 void Widget::slotClientRestart()
 {
     auto uptr = std::make_unique<TcpSmartClient>(
-                QHostAddress(_leIp->text()), _lePort->text().toUShort());
+                QHostAddress(_settingsWidget->ip()), _settingsWidget->port());
 
     _smartClient = std::move(uptr);
     QObject::connect(_smartClient.get(), SIGNAL(connected()),   this, SLOT(slotConnected()) );
-    _wgtNetSettings->hide();
+    _settingsWidget->hide();
 }
 
 
@@ -270,7 +228,7 @@ void Widget::updateGui(qint64 dataSize, DataType type)
 
 void Widget::slotConnected()
 {
-    qDebug() << "connected with port" << _lePort->text();
+    qDebug() << "connected with port" << QString::number(_settingsWidget->port());
 }
 
 void Widget::sendStructData()

@@ -7,25 +7,24 @@
 #include "somestruct.h"
 
 using namespace boost::property_tree;
-class QLabel;
 class QTextEdit;
 class QPushButton;
-class QGridLayout;
-class QSettings;
 class TcpSmartClient;
 class AverageTime;
+class NetSettingsDialog;
 class Widget : public QWidget
 {
     Q_OBJECT
 public:
     Widget();
     ~Widget();
+public slots:
+    void slotClientRestart();
 private slots:
     void sendJsonData();
     void sendStructData();
     void slotConnected();
     void slotOpenSettingsWidget();
-    void slotClientRestart();
 private:
     std::unique_ptr<TcpSmartClient> _smartClient;
     QPushButton*    _pbSendJson;
@@ -34,20 +33,8 @@ private:
     QTextEdit*      _teSendingResult;
     QLineEdit*      _leObjAmount;
     QFont* _notoSans11;
-    // Net settings widget:
-    void initSettingsWidget();
-    QDialog*        _wgtNetSettings;
-    QGridLayout*    _grid2;
-    QLabel*     _lb2;
-    QLabel*     _lbIp;
-    QLabel*     _lbPort;
-    QLineEdit*  _leIp;
-    QLineEdit*  _lePort;
-    QPushButton*    _pbApplySettings;
 
-    QSettings* _settings;
-    void usePreviousSettings(QLineEdit* leForIp, QLineEdit* leForPort);
-    // --------------------
+    NetSettingsDialog* _settingsWidget;
     const ushort    _prefix  = 0x1002;
     const ushort    _postfix = 0x1003;
     std::string _prefixStr{};
