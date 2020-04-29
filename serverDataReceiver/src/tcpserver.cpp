@@ -10,15 +10,14 @@ TcpServer::TcpServer(ushort connectionLimit)
     // был равен 3143184 (обмен через localhost),
     // был равен 4606400 (обмен по сети)
     _buff.reserve(6800100);
-    _server = new QTcpServer(this);
-    connect(_server, &QTcpServer::newConnection,
+    _server = std::make_unique<QTcpServer>();
+    connect(_server.get(), &QTcpServer::newConnection,
             this, &TcpServer::slotNewConnection);
 }
 
 TcpServer::~TcpServer()
 {
     close(); // Без этого метода тоже работает
-    delete _server;
     qDebug() << "TcpServer::~dtor() called";
 }
 
@@ -84,11 +83,12 @@ void TcpServer::slotRead()
 {
     auto cliSocket = dynamic_cast<QTcpSocket*>(this->sender());
     QDataStream in(cliSocket);
-    in.setVersion(QDataStream::Qt_5_3);
+    in.setVersion(QDataStream::Qt_5_7);
+    auto len = static_cast<ulong>(cliSocket->bytesAvailable());
+    _buff.resize(len);
     // Явно уменьшаю len до размера int. Проблем не возникает:
-    int len = static_cast<int>(cliSocket->bytesAvailable());
-    in.readRawData(_buff.data(), len);
-    emit haveData(_buff, len, cliSocket->peerPort());
+    in.readRawData(_buff.data(), static_cast<int>(len));
+    emit haveData(_buff, cliSocket->peerPort());
 }
 
 void TcpServer::sendToClient(const QByteArray& ba)

@@ -45,7 +45,7 @@ Widget::Widget()
     gridl->addWidget(_lbCurrentPort,   0, 2,   1, 1);
 
     QString _step;
-    QLabel* lbLeft1 = new QLabel(tr("Номер порта tcp-сервера (авторестарт сервера \nбудет проходить на интервале [порт + 23]):"));
+    QLabel* lbLeft1 = new QLabel(tr("Номер порта tcp-сервера:"));
     _step.setNum(defaultPort);
     _lePort = new QLineEdit();
     _lePort->setText(_step);
@@ -115,27 +115,17 @@ Widget::Widget()
     connect(_pbClearOutput, SIGNAL(clicked()),      this, SLOT(clearOutput()) );
 
     // Create TcpServer:
-    if (_server == nullptr)
-    {
-        _server = std::make_unique<TcpServer>(3);
-        // Возможность обработки ситуации, когда порт уже занят:
-    //    connect(_server.get(), &TcpServer::portIsBusy,
-    //            this, &Widget::restartServer);
-        connect(_server.get(), &TcpServer::haveData,
-                this, &Widget::processMsg);
-
-        connect(_server.get(), &TcpServer::listenPort,
-                this, &Widget::showServPort);
-        connect(_server.get(), &TcpServer::clientConnected,
-                this, &Widget::slotCliConnected);
-        connect(_server.get(), &TcpServer::clientDisconnected,
-                this, &Widget::slotCliDisconnected);
-//        connect(_server.get(), &TcpServer::portIsBusy,
-//                this, &Widget::close);
-
-        // Активируем сервер:
-        _pbStart->click();
-    }
+    _server = std::make_unique<TcpServer>(3);
+    connect(_server.get(), &TcpServer::haveData,
+            this, &Widget::processMsg);
+    connect(_server.get(), &TcpServer::listenPort,
+            this, &Widget::showServPort);
+    connect(_server.get(), &TcpServer::clientConnected,
+            this, &Widget::slotCliConnected);
+    connect(_server.get(), &TcpServer::clientDisconnected,
+            this, &Widget::slotCliDisconnected);
+    connect(_server.get(), &TcpServer::portIsBusy,
+            this, &Widget::slotPortIsBusy);
 }
 
 Widget::~Widget()
@@ -147,9 +137,8 @@ Widget::~Widget()
 void Widget::showEvent(QShowEvent* /*event*/)
 {
     // Т.к. метод shared_from_this() не может быть использован в конструкторе
-    // класса Widget, конструировать объект класса Restarter приходится
+    // класса Widget, конструировать объекты некоторых классов приходится
     // в данном методе.
-
 //    qDebug() << "Widget::showEvent() called!";
 }
 
@@ -163,7 +152,7 @@ void Widget::printJsonObjAmount(ulong size)
     _teStatistics->setTextColor(Qt::black);
 }
 
-void Widget::printTimeAndSizeInfo(int msgSize)
+void Widget::printTimeAndSizeInfo(ulong msgSize)
 {
     QString time = _time->currentTime().toString("hh:mm:ss.zzz");
     QString timeAndSize = time + tr("  принято ") + QString::number(msgSize) + tr(" байт");
@@ -204,11 +193,11 @@ void Widget::addDataItemToRow(int column, const QVariant& data)
 }
 
 
-void Widget::processMsg(std::vector<char>& data, int size, ushort portFrom)
+void Widget::processMsg(std::vector<char>& data, ushort portFrom)
 {
-    printTimeAndSizeInfo(size);
+    printTimeAndSizeInfo(data.size());
     auto parser = getParser(portFrom);
-    parser->parseMsg(data.data(), size);
+    parser->parseMsg(std::move(data));
 //    parser->printSturctsContent();
     _dataHandler->handle<DataOne>(parser->getMapOfParsers());
     _dataHandler->handle<kd_fromT4_01a>(parser->getMapOfParsers());
@@ -220,8 +209,8 @@ Widget::ShPtrParser Widget::getParser(TcpPort port)
     auto it = _parsers.find(port);
     if (it == _parsers.end())
     {
-//        DataHeader header{0x1002, 0xdddd, 0, 0x1003};
-        EmptyHeader header;
+        DataHeader header{0x1002, 0xdddd, 0, 0x1003};
+//        EmptyHeader header;
         auto p = ParsersManager<Header, PFamily>::create(shared_from_this(), header);
         _parsers.insert({port, p});
         return p;
@@ -246,7 +235,7 @@ void Widget::slotStartServer()
     disconnect(_pbStart, SIGNAL(clicked()),     this, SLOT(slotStartServer()) );
     connect(_pbStart, SIGNAL(clicked()),     this, SLOT(slotStopServer()) );
 
-    st = tr("Сервер работает в режиме\n\"Один порт из множества\"");
+    st = tr("Tcp-сервер ожидает \nвходящие соединения");
     _pbStart->setText(st);
     _pbStart->setPalette(*_yellow0);
 }
@@ -260,13 +249,6 @@ void Widget::slotStopServer()
     _pbStart->setPalette(*_green1);
     _pbConnectionStatus->setPalette(*_red0);
 }
-
-//void Widget::updateGui(...)
-//{
-//    lb_receive->setText(QString::number(chRcv_));
-//    lb_send->setText(QString::number(chSnd_));
-//    lb_ntpd->setText(QString::number(tpd));
-//}
 
 void Widget::showServPort(quint16 port)
 {
@@ -294,6 +276,12 @@ void Widget::slotCliDisconnected(quint16 port)
     _teErrors->append(s);
     // Удаляем связанный экземпляр парсера:
     _parsers.erase(port);
+}
+
+void Widget::slotPortIsBusy()
+{
+    _server->close();
+    emit quitFromApp();
 }
 
 void Widget::clearLabels(ClearLabelsPolicy fl)
