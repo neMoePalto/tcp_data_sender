@@ -19,15 +19,17 @@ QMAKE_CXXFLAGS += -std=c++14
 
 SOURCES += \
         src/averagetime.cpp \
+        src/gui/netsettingsdialog.cpp \
         src/main.cpp \
         src/tcpsmartclient.cpp \
-        src/widget.cpp
+        src/gui/widget.cpp
 
 HEADERS += \
         src/averagetime.h \
+        src/gui/netsettingsdialog.h \
         src/somestruct.h \
         src/tcpsmartclient.h \
-        src/widget.h
+        src/gui/widget.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
