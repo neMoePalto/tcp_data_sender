@@ -29,7 +29,7 @@ class ParsersManager;
 class AbstractParser;
 class AbstractP;
 class DataHandler;
-class Restarter;
+class TcpServer;
 class QTime;
 class Widget :
         public QWidget,
@@ -40,27 +40,28 @@ public:
     Widget();
     ~Widget() override;
     using ptrFnProcessing = void(Widget::*)(QByteArray ba);
+signals:
+    void quitFromApp();
 public slots:
-    void processMsg(std::vector<char> &data, int size, ushort portFrom);
+    void processMsg(std::vector<char> &data, ushort portFrom);
+    void slotStartServer();
     void slotCliConnected(quint16 port);
     void slotCliDisconnected(quint16 port);
+    void slotPortIsBusy();
     void showServPort(quint16 port);
     void printParsingResults(MessageParsingResult info);
 private slots:
-    void slotStartServer();
     void slotStopServer();
     void clearOutput();
 private:
-    std::unique_ptr<Restarter> _restarter;
     using TcpPort = ushort;
-//    using Header = DataHeader;
-    using Header = EmptyHeader;
-//    using PFamily = AbstractParser;
-    using PFamily = AbstractP;
+    using Header = DataHeader;
+//    using Header = EmptyHeader;
+    using PFamily = AbstractParser;
+//    using PFamily = AbstractP;
     using ShPtrParser = std::shared_ptr<ParsersManager<Header, PFamily>>;
-
     std::map<TcpPort, ShPtrParser> _parsers{};
-
+    std::unique_ptr<TcpServer> _server;
     std::unique_ptr<DataHandler> _dataHandler;
 
     // GUI:
@@ -69,7 +70,6 @@ private:
     QTextEdit*  _teErrors;
     std::unique_ptr<QTime> _time;
     QLineEdit*  _lePort;
-    QLineEdit*  _leRestartValue;
     QLabel*     _lbCurrentPort;
     QPushButton* _pbStart;
     QPushButton* _pbConnectionStatus;
@@ -83,10 +83,9 @@ private:
     void addDataItemToRow(int column, const QVariant &data);
 
     void clearLabels(ClearLabelsPolicy fl = ClearLabelsPolicy::All);
-    void printTimeAndSizeInfo(int msgSize);
+    void printTimeAndSizeInfo(ulong msgSize);
     void printJsonObjAmount(ulong size);
     ShPtrParser getParser(TcpPort port);
-//    void    updateGui();
     void showEvent(QShowEvent* /*event*/) override;
 };
 

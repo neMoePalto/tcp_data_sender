@@ -45,7 +45,7 @@ public:
     ParsersManager(const ParsersManager& other) = delete;
     ParsersManager& operator=(const ParsersManager& other) = delete;
     ~ParsersManager();
-    void parseMsg(char* dataFromTcp, int size);
+    void parseMsg(std::vector<char> &&data);
     void savePieceOfData(std::string&& piece);
     void readMsgFromBeginning(std::string &&data, S* ptr = nullptr);
     std::shared_ptr<HeaderDescription<S>> headerDescription() const;
