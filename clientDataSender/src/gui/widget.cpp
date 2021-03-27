@@ -182,7 +182,7 @@ ptree Widget::jsonFromFile(const std::string &fileName) const
 //        boost::property_tree::read_json(data, jsonTree);
         boost::property_tree::read_json(fileName, jsonTree);
     }
-    catch (json_parser_error jsonError)
+    catch (const json_parser_error& jsonError)
     {
         qDebug() << "Can't parse file" << jsonError.filename().c_str()
                  << "\nMay be, syntax error or another one.";
