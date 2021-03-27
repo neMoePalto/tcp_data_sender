@@ -34,7 +34,6 @@ HEADERS += \
         src/all_struct_parser/structparserlight.h \
         src/all_struct_parser/structparserlight_impl.h \
         src/averagetime.h \
-        src/dataheader.h \
         src/headerdescription.h \
         src/headerdescription_impl.h \
         src/parsers/abstractparser_impl.h \
@@ -42,13 +41,13 @@ HEADERS += \
         src/parsers/jsonparser_impl.h \
         src/parsers/structparser_impl.h \
         src/parsersmanager_impl.h \
-        src/somestruct.h \
         src/parsers/abstractparser.h \
         src/parsers/jsonparser.h \
         src/parsers/structparser.h \
         src/parsersmanager.h \
-        src/structs/kdfrom_T4.h \
+        src/structs/somestruct.h \
+        src/structs/struct001.h \
+        src/structs/dataheader.h \
         src/tcpserver.h \
         src/widget.h
-
 

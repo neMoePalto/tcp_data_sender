@@ -3,7 +3,7 @@
 #include <memory>
 #include <map>
 #include <QDebug>
-#include "dataheader.h"
+#include "structs/dataheader.h"
 #include "headerdescription.h"
 #include "parsers/abstractparser.h"
 /*
