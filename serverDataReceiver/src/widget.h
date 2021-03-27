@@ -10,7 +10,7 @@
 #include <QTableWidget>
 #include <memory>
 #include "parsers/abstractparsersignalsslots.h"
-#include "dataheader.h"
+#include "structs/dataheader.h"
 
 namespace MySpace {
 const int a = 4;

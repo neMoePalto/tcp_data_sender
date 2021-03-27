@@ -200,7 +200,7 @@ void Widget::processMsg(std::vector<char>& data, ushort portFrom)
     parser->parseMsg(std::move(data));
 //    parser->printSturctsContent();
     _dataHandler->handle<DataOne>(parser->getMapOfParsers());
-    _dataHandler->handle<kd_fromT4_01a>(parser->getMapOfParsers());
+    _dataHandler->handle<Struct001>(parser->getMapOfParsers());
     _dataHandler->handle<DataTwo>(parser->getMapOfParsers());
 }
 

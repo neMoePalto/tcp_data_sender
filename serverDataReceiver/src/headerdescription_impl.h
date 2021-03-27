@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 #include <QDebug>
 #include "headerdescription.h"
-#include "dataheader.h"
+#include "structs/dataheader.h"
 
 //template<typename S>
 //HeaderDescription<S>::HeaderDescription(S&& header)

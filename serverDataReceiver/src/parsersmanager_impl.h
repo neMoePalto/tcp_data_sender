@@ -7,8 +7,8 @@
 #include "parsers/jsonparser.h"
 #include "parsers/structparser.h"
 #include "widget.h"
-#include "somestruct.h"
-#include "structs/kdfrom_T4.h"
+#include "structs/somestruct.h"
+#include "structs/struct001.h"
 #include "all_struct_parser/structparserlight.h"
 
 
@@ -43,7 +43,7 @@ void ParsersManager<DataHeader, AbstractParser>::init()
 template<>
 void ParsersManager<EmptyHeader, AbstractP>::init()
 {
-    auto pars1 = std::make_shared<StructParserLight<kd_fromT4_01a>>(0x0001);
+    auto pars1 = std::make_shared<StructParserLight<Struct001>>(0x0001);
     _dataParsers.insert({pars1->getNum(), pars1});
     auto pars2 = std::make_shared<StructParserLight<DataOne>>(0x0101);
     _dataParsers.insert({pars2->getNum(), pars2});

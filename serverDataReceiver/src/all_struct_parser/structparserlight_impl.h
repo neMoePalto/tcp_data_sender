@@ -4,7 +4,7 @@
 #endif
 
 #include "structparserlight.h"
-#include "structs/kdfrom_T4.h"
+#include "structs/struct001.h"
 #include <QDebug>
 
 template<typename T>
