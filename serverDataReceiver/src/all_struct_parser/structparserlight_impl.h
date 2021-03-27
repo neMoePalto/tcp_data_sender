@@ -4,7 +4,7 @@
 #endif
 
 #include "structparserlight.h"
-#include "structs/kdfrom_T4.h"
+#include "structs/struct001.h"
 #include <QDebug>
 
 template<typename T>
@@ -36,7 +36,7 @@ void StructParserLight<T>::clearCollection()
 //}
 
 //template<>
-//void StructParserLight<kd_fromT4_01a>::useData()
+//void StructParserLight<Struct001>::useData()
 //{
 //    qDebug() << "\n";
 //    for (auto &obj : _structs)

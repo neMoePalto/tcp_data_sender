@@ -5,7 +5,7 @@
 #include "datahandler.h"
 #include <QDebug>
 
-struct kd_fromT4_01a;
+struct Struct001;
 struct DataOne;
 struct DataTwo;
 
@@ -45,9 +45,9 @@ void DataHandler::processData(std::vector<T>& data)
 
 // Необходимо написать специализации для всех типов данных:
 template<>
-void DataHandler::processObj(kd_fromT4_01a& /*obj*/)
+void DataHandler::processObj(Struct001& /*obj*/)
 {
-    qDebug() << "specialization for kd_97L6_01a";
+    qDebug() << "specialization for Struct001";
 }
 
 template<>
