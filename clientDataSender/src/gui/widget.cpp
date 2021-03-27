@@ -5,7 +5,7 @@
 #include <QString>
 #include <QDebug>
 #include <boost/property_tree/json_parser.hpp>
-#include <boost/algorithm/string/erase.hpp>
+//#include <boost/algorithm/string/erase.hpp>
 #include <algorithm>
 #include <string>
 #include <netinet/in.h>
