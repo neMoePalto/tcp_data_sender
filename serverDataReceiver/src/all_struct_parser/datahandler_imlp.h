@@ -47,7 +47,7 @@ void DataHandler::processData(std::vector<T>& data)
 template<>
 void DataHandler::processObj(Struct001& /*obj*/)
 {
-    qDebug() << "specialization for kd_97L6_01a";
+    qDebug() << "specialization for Struct001";
 }
 
 template<>

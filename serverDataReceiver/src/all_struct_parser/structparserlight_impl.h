@@ -36,7 +36,7 @@ void StructParserLight<T>::clearCollection()
 //}
 
 //template<>
-//void StructParserLight<kd_fromT4_01a>::useData()
+//void StructParserLight<Struct001>::useData()
 //{
 //    qDebug() << "\n";
 //    for (auto &obj : _structs)
